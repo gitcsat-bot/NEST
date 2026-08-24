@@ -1,0 +1,18 @@
+{
+  "subsystems": [
+    "ADCS (Software)",
+    "ADCS (Electronics)",
+    "Power",
+    "Payload",
+    "Communications (Software)",
+    "Communications (Electronics)",
+    "Onboard Computer"
+  ],
+  "teamRoles": [
+    "Member",
+    "Subsystem Lead",
+    "Portfolio Head",
+    "College Faculty",
+    "Project Manager"
+  ]
+}

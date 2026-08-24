@@ -1,0 +1,85 @@
+# NEST — local development topology.
+# Mirrors Security Design §2's diagram and ADR-007/ADR-010: only Caddy is
+# published; everything else sits on the internal Docker network with no
+# host port mappings in the staging/prod overlays (dev exposes a few ports
+# directly to localhost for convenience, which is a dev-only relaxation —
+# see the comment on each service below).
+#
+# This is the dev overlay only. staging/prod overlays (Implementation Plan
+# §3 "Environments & deployment pipeline") are added when Phase 0's
+# deployment-pipeline workstream is picked up, following the same shape
+# with published ports removed except Caddy's.
+
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: nest
+      POSTGRES_USER: nest_migrator
+      POSTGRES_PASSWORD: SpaceIsGr8
+    ports:
+      # Dev convenience only — lets a local Prisma Studio / psql client
+      # connect directly. Not present in the staging/prod overlays.
+      - "5432:5432"
+    volumes:
+      - nest_postgres_data:/var/lib/postgresql/data
+      # Runs once, only on a genuinely empty data volume — Postgres skips
+      # this directory entirely on subsequent starts. See
+      # infra/docker/init/01-create-app-role.sql for what it does.
+      - ./init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nest_migrator -d nest"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: nest_dev
+      MINIO_ROOT_PASSWORD: SpaceIsGr8
+    ports:
+      - "9000:9000"
+      - "9001:9001" # MinIO console — dev convenience only, not in prod
+    volumes:
+      - nest_minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  clamav:
+    image: clamav/clamav:stable
+    ports:
+      - "3310:3310"
+    healthcheck:
+      test: ["CMD", "clamdcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 90s # ClamAV's virus DB load is slow on first boot
+
+  # backend and frontend are run via `pnpm dev:backend` / `pnpm dev:frontend`
+  # directly against these services during Phase 0/1 development, rather
+  # than containerized here — faster iteration than a container rebuild
+  # loop. They join this compose file's service list once the deployment-
+  # pipeline workstream builds the staging/prod overlays, where they run
+  # containerized behind Caddy as the ADR specifies.
+
+volumes:
+  nest_postgres_data:
+  nest_minio_data:

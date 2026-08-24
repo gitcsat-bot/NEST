@@ -1,0 +1,58 @@
+name: CI
+
+# Implementation Plan §3 "CI/CD skeleton": lint → build → unit test,
+# running green against the codebase before any real feature work is
+# considered mergeable. Integration tests, dependency/secret scanning,
+# and the staging/production deploy stages (ADR-010's full pipeline
+# shape) are added by the "Environments & deployment pipeline"
+# workstream — this file is the Phase 0 starting point, not the final
+# pipeline.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-build-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: nest_test
+          POSTGRES_USER: nest_test
+          POSTGRES_PASSWORD: nest_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U nest_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Generate Prisma client
+        run: pnpm --filter @nest/backend prisma:generate
+
+      - name: Build
+        run: pnpm build
+
+      - name: Unit tests
+        run: pnpm test
