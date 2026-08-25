@@ -13,8 +13,9 @@ describe('CatalogDeletionRequestsService', () => {
   beforeEach(async () => {
     prismaMock = {
       $transaction: jest.fn(async (cb: any) => cb(prismaMock)),
-      assetDefinition: { findUnique: jest.fn(), delete: jest.fn() },
+      assetDefinition: { findUnique: jest.fn(), delete: jest.fn(), update: jest.fn() },
       inventoryItem: { updateMany: jest.fn() },
+      assetInstance: { updateMany: jest.fn() },
       catalogDeletionRequest: {
         findFirst: jest.fn(),
         findUnique: jest.fn(),
@@ -39,7 +40,7 @@ describe('CatalogDeletionRequestsService', () => {
     it('creates a request', async () => {
       prismaMock.assetDefinition.findUnique.mockResolvedValueOnce({ id: 'ad-1' });
       prismaMock.catalogDeletionRequest.findFirst.mockResolvedValueOnce(null);
-      prismaMock.catalogDeletionRequest.create.mockResolvedValueOnce({ id: 'req-1', status: 'pending' });
+      prismaMock.catalogDeletionRequest.create.mockResolvedValueOnce({ id: 'req-1', status: 'pending', createdAt: new Date() });
       
       const res = await service.create('ad-1', { reason: 'x' }, 'u', mockCtx);
       expect(res.id).toEqual('req-1');
@@ -49,15 +50,19 @@ describe('CatalogDeletionRequestsService', () => {
   describe('review', () => {
     it('approves and deletes', async () => {
       prismaMock.catalogDeletionRequest.findUnique.mockResolvedValueOnce({ status: 'pending', assetDefinitionId: 'ad-1' });
+      prismaMock.catalogDeletionRequest.update.mockResolvedValueOnce({ id: 'req-1', status: 'approved', createdAt: new Date() });
       await service.review('req-1', 'approved', 'u', mockCtx);
-      expect(prismaMock.assetDefinition.delete).toHaveBeenCalled();
+      expect(prismaMock.assetDefinition.update).toHaveBeenCalled();
     });
 
     it('rejects without deleting', async () => {
-      prismaMock.catalogDeletionRequest.findUnique.mockResolvedValueOnce({ status: 'pending', assetDefinitionId: 'ad-1' });
-      prismaMock.catalogDeletionRequest.update.mockResolvedValueOnce({ status: 'rejected' });
+      prismaMock.catalogDeletionRequest.findUnique
+        .mockResolvedValueOnce({ status: 'pending', assetDefinitionId: 'ad-1' })
+        .mockResolvedValueOnce({ id: 'req-1', status: 'rejected', createdAt: new Date() });
+      prismaMock.catalogDeletionRequest.update.mockResolvedValueOnce({ id: 'req-1', status: 'rejected', createdAt: new Date() });
       await service.review('req-1', 'rejected', 'u', mockCtx);
       expect(prismaMock.assetDefinition.delete).not.toHaveBeenCalled();
+      expect(prismaMock.assetDefinition.update).not.toHaveBeenCalled();
     });
   });
 });
