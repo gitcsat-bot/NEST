@@ -107,13 +107,13 @@ export function MaterialsPage() {
     formData.append('file', file);
 
     try {
-      await apiRequest('/inventory/csv/upload', {
+      const res = await apiRequest<{ message?: string }>('/inventory/csv/upload', {
         method: 'POST',
         body: formData
       });
-      
-      alert('CSV uploaded successfully!');
+      alert(res.message || 'CSV uploaded successfully!');
       fetchData();
+      if (e.target) e.target.value = ''; // Reset input so same file can be uploaded again
     } catch (err: any) {
       setError(err.message);
     } finally {

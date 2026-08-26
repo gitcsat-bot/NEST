@@ -1,0 +1,2 @@
+SKU [Required],Name [Required],Manufacturer [Optional],Model No [Optional],Description [Optional],Location [Required],Quantity [Required]
+PART-999,Test Item,Test Corp,,Test desc,Test Loc,50

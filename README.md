@@ -45,24 +45,37 @@ cp apps/frontend/.env.example apps/frontend/.env
 ```
 
 ### 3. Quick Start (Windows)
-We provide an automated script to start the entire stack, including Docker containers, database migrations, backend, and frontend.
+We provide an automated script to start the entire stack, including dependencies, Docker containers, database migrations, backend, and frontend.
 
 Simply run:
 ```bat
 .\run.bat
 ```
 
-Alternatively, you can manually run:
+Alternatively, you can manually run the stack:
 ```bash
+# 1. Install all monorepo dependencies
 pnpm install
+
+# 2. Start PostgreSQL and MinIO in the background
 docker compose -f infra/docker/docker-compose.dev.yml up -d
-pnpm --filter @nest/backend prisma:generate
+
+# 3. Generate and migrate the database schema
+pnpm run prisma:generate
 pnpm --filter @nest/backend prisma:migrate:dev
-# In terminal 1:
-pnpm dev:backend
-# In terminal 2:
-pnpm dev:frontend
+
+# 4. Start the backend server (Terminal 1)
+pnpm run dev:backend
+
+# 5. Start the frontend server (Terminal 2)
+pnpm run dev:frontend
 ```
+
+---
+
+## Recent Feature Additions
+- **Bulk CSV Importing:** Automatically import and update physical inventory records directly from standard `.csv` spreadsheets.
+- **Dynamic Theming Support:** Automatically matches the user's OS preference for Light/Dark mode during login/registration, and supports custom user overrides via settings.
 
 ---
 

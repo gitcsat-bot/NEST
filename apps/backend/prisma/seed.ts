@@ -62,13 +62,13 @@ async function main() {
     const passwordHash = await argon2.hash(DEV_TEST_USER_PASSWORD);
     await prisma.user.upsert({
       where: { email: DEV_TEST_USER_EMAIL },
-      update: { totpEnabled: true },
+      update: { totpEnabled: true, misId: '999999999' },
       create: {
         email: DEV_TEST_USER_EMAIL,
         passwordHash,
         displayName: 'Dev Test Admin',
         role: 'admin' as never,
-        misId: '612015001',
+        misId: '999999999',
         gender: 'other' as never,
         whatsappNumber: '+1234567890',
         subsystem: 'Onboard Computer',
@@ -85,13 +85,13 @@ async function main() {
     const testPasswordHash = await argon2.hash(TEST_USER_PASSWORD);
     await prisma.user.upsert({
       where: { email: TEST_USER_EMAIL },
-      update: { totpEnabled: true },
+      update: { totpEnabled: true, misId: '999999998' },
       create: {
         email: TEST_USER_EMAIL,
         passwordHash: testPasswordHash,
         displayName: 'Test Viewer User',
         role: 'viewer' as never,
-        misId: '612015002',
+        misId: '999999998',
         gender: 'prefer_not_to_say' as never,
         whatsappNumber: '+1234567891',
         subsystem: 'ADCS (Software)',
@@ -115,13 +115,13 @@ async function main() {
     const studentPasswordHash = await argon2.hash(STUDENT_USER_PASSWORD);
     await prisma.user.upsert({
       where: { email: STUDENT_USER_EMAIL },
-      update: { totpEnabled: true },
+      update: { totpEnabled: true, misId: '999999997' },
       create: {
         email: STUDENT_USER_EMAIL,
         passwordHash: studentPasswordHash,
         displayName: 'Test Student',
         role: 'student' as never,
-        misId: '612015004',
+        misId: '999999997',
         gender: 'male' as never,
         whatsappNumber: '+1234567892',
         subsystem: 'Power',

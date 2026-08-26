@@ -1,8 +1,8 @@
 {
   "name": "nest-workspace",
   "private": true,
-  "version": "0.1.0",
-  "description": "NEST \u2014 Networked Equipment & Stock Tracker (monorepo root)",
+  "version": "1.3.0",
+  "description": "NEST — Networked Equipment & Stock Tracker (monorepo root)",
   "packageManager": "pnpm@9.0.0",
   "scripts": {
     "dev:backend": "pnpm --filter @nest/backend dev",

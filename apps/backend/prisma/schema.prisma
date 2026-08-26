@@ -345,6 +345,9 @@ model AssetDefinition {
   description  String?                  @db.Text
   manufacturer String?                  @db.VarChar(100)
   datasheetUrl String?                  @map("datasheet_url")
+  modelNumber  String?                  @map("model_number") @db.VarChar(100)
+  isConsumable Boolean                  @default(false) @map("is_consumable")
+  requiresReturn Boolean                @default(false) @map("requires_return")
   searchVector Unsupported("tsvector")? @map("search_vector")
   createdAt    DateTime                 @default(now()) @map("created_at") @db.Timestamptz
   updatedAt    DateTime                 @updatedAt @map("updated_at") @db.Timestamptz

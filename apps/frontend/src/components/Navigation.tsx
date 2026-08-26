@@ -98,6 +98,7 @@ export function NavigationLayout() {
               <NavLink
                 key={item.path}
                 to={item.path}
+                end={item.path === '/materials' || item.path === '/catalog'}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ${

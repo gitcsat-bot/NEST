@@ -36,7 +36,10 @@ export class MaterialsService {
     page: number;
     pageSize: number;
   }) {
-    const where: any = { deletedAt: null };
+    const where: any = { 
+      deletedAt: null,
+      assetDefinition: { deletedAt: null }
+    };
     if (filters.locationId) where.locationId = filters.locationId;
     if (filters.assetDefinitionId) where.assetDefinitionId = filters.assetDefinitionId;
 
