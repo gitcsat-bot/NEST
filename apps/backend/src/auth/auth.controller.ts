@@ -41,7 +41,7 @@ export class AuthController {
     if ('two_factor_required' in result) {
       return result;
     }
-    setSessionCookie(res, result.rawSessionToken);
+    setSessionCookie(res, result.rawSessionToken, dto.remember_me);
     return { user: result.user };
   }
 
@@ -86,7 +86,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const result = await this.authService.verifyTwoFactor(dto, requestContext(req));
-    setSessionCookie(res, result.rawSessionToken);
+    setSessionCookie(res, result.rawSessionToken, dto.remember_me);
     return { user: result.user };
   }
 
@@ -132,8 +132,9 @@ export class AuthController {
 
   @Get('me')
   @HttpCode(HttpStatus.OK)
-  getMe(@CurrentUser() user: SessionUser) {
-    return { user };
+  async getMe(@CurrentUser() user: SessionUser) {
+    const fullUser = await this.authService.getMe(user.id);
+    return { user: fullUser };
   }
 
   @Public()
@@ -160,14 +161,18 @@ function requestContext(req: Request) {
   };
 }
 
-function setSessionCookie(res: Response, rawToken: string) {
+function setSessionCookie(res: Response, rawToken: string, rememberMe: boolean = false) {
   // HttpOnly + Secure + SameSite=Strict per ADR-005. `secure` is
   // conditional on NODE_ENV so local HTTP development still works;
   // production always runs behind Caddy's TLS termination (ADR-007).
-  res.cookie(SESSION_COOKIE_NAME, rawToken, {
+  const cookieOptions: any = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
     path: '/',
-  });
+  };
+  if (rememberMe) {
+    cookieOptions.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+  }
+  res.cookie(SESSION_COOKIE_NAME, rawToken, cookieOptions);
 }

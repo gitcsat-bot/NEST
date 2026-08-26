@@ -48,71 +48,71 @@ export function InventoryRequestsPage() {
   }
 
   return (
-    <div>
-      <h1 className="text-xl font-semibold mb-6">Inventory Requests</h1>
-      <p className="text-sm text-gray-600 mb-4">Pending quantity requests submitted by students and admins.</p>
+    <div className="p-4 md:p-8 max-w-7xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-700 mb-2">Inventory Requests</h1>
+        <p className="text-sm font-medium text-gray-600">Pending quantity requests submitted by students and admins.</p>
+      </div>
 
       {error && (
         <div
           role="alert"
-          className="mb-4 rounded p-3 text-sm"
-          style={{ background: '#fef2f2', color: 'var(--nest-color-danger)' }}
+          className="mb-8 rounded-xl p-4 text-sm neu-inset text-red-600 font-medium"
         >
           {error}
         </div>
       )}
 
       {loading ? (
-        <p className="text-gray-500 text-sm">Loading…</p>
+        <p className="text-gray-500 text-sm font-medium">Loading…</p>
       ) : items.length === 0 ? (
-        <p className="text-gray-500 text-sm">No pending requests.</p>
+        <p className="text-gray-500 text-sm font-medium">No pending requests.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr className="border-b text-left">
-                <th className="py-2 px-2">Material</th>
-                <th className="py-2 px-2">Requested by</th>
-                <th className="py-2 px-2">Quantity</th>
-                <th className="py-2 px-2">Reason</th>
-                <th className="py-2 px-2">Submitted</th>
-                <th className="py-2 px-2"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((req) => (
-                <tr key={req.id} className="border-b hover:bg-gray-50">
-                  <td className="py-2 px-2 font-medium">{req.material_name}</td>
-                  <td className="py-2 px-2">{req.requested_by_display_name}</td>
-                  <td className="py-2 px-2">{req.requested_quantity}</td>
-                  <td className="py-2 px-2 text-gray-600">{req.reason ?? '—'}</td>
-                  <td className="py-2 px-2 text-gray-500">{new Date(req.created_at).toLocaleString()}</td>
-                  <td className="py-2 px-2">
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        disabled={actingOnId === req.id}
-                        onClick={() => handleDecision(req.id, 'approve')}
-                        className="text-xs px-2 py-1 rounded text-white disabled:opacity-60"
-                        style={{ background: 'var(--nest-color-accent)' }}
-                      >
-                        Approve
-                      </button>
-                      <button
-                        type="button"
-                        disabled={actingOnId === req.id}
-                        onClick={() => handleDecision(req.id, 'reject')}
-                        className="text-xs px-2 py-1 rounded border disabled:opacity-60"
-                        style={{ color: 'var(--nest-color-danger)' }}
-                      >
-                        Reject
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {items.map((req) => (
+            <div key={req.id} className="neu-flat rounded-xl p-6 flex flex-col justify-between">
+              <div>
+                <div className="mb-4 border-b border-gray-200/50 pb-4">
+                  <div className="font-bold text-gray-700 text-lg truncate">{req.material_name}</div>
+                  <div className="text-xs font-mono text-gray-500 mt-1">Requested Qty: {req.requested_quantity}</div>
+                </div>
+
+                <div className="space-y-3 mb-6 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 font-medium">Requested By</span>
+                    <span className="font-medium text-gray-700">{req.requested_by_display_name}</span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-gray-500 font-medium">Reason</span>
+                    <span className="font-medium text-gray-500 italic neu-inset p-3 rounded-xl block mt-2 text-sm">{req.reason ?? 'No reason provided'}</span>
+                  </div>
+                  <div className="flex justify-between mt-2">
+                    <span className="text-gray-500 font-medium">Submitted</span>
+                    <span className="font-medium text-gray-700">{new Date(req.created_at).toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t border-gray-200/50 mt-auto justify-end">
+                <button
+                  type="button"
+                  disabled={actingOnId === req.id}
+                  onClick={() => handleDecision(req.id, 'reject')}
+                  className="px-4 py-2 rounded-xl text-sm font-bold text-red-600 neu-button disabled:opacity-50"
+                >
+                  Reject
+                </button>
+                <button
+                  type="button"
+                  disabled={actingOnId === req.id}
+                  onClick={() => handleDecision(req.id, 'approve')}
+                  className="px-4 py-2 rounded-xl text-sm font-bold text-emerald-600 neu-button disabled:opacity-50"
+                >
+                  Approve
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

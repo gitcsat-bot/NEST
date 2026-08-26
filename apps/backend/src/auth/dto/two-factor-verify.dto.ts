@@ -1,4 +1,4 @@
-import { IsString, Length } from 'class-validator';
+import { IsString, Length, IsBoolean, IsOptional } from 'class-validator';
 
 export class TwoFactorVerifyDto {
   @IsString()
@@ -7,4 +7,8 @@ export class TwoFactorVerifyDto {
   @IsString()
   @Length(6, 10) // 6-digit TOTP or a longer recovery code
   code!: string;
+
+  @IsBoolean()
+  @IsOptional()
+  remember_me?: boolean;
 }

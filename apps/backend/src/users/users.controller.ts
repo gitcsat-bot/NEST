@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Patch, Post, Body, Query } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Post, Body, Query, Delete } from '@nestjs/common';
 import { UserRole } from '@nest/shared-types';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RequireStepUp } from '../auth/decorators/require-step-up.decorator';
@@ -46,6 +46,12 @@ export class UsersController {
   @Post('me/request-role')
   async requestRole(@Body() dto: ChangeRoleDto, @CurrentUser() caller: SessionUser) {
     return this.usersService.requestRole(caller.id, dto.role);
+  }
+
+  @Delete('me')
+  @RequireStepUp()
+  async deleteAccount(@CurrentUser() caller: SessionUser) {
+    return this.usersService.deleteAccount(caller.id);
   }
 
   @Get(':id')

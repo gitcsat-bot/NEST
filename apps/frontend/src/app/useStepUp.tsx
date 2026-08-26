@@ -62,11 +62,10 @@ export function useStepUp() {
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <form
         onSubmit={confirmStepUp}
-        className="bg-white rounded p-6 w-full max-w-sm space-y-3"
-        style={{ borderRadius: 'var(--nest-radius)' }}
+        className="neu-flat rounded-2xl p-6 w-full max-w-sm space-y-4"
       >
-        <h2 className="text-lg font-semibold">Confirm it's you</h2>
-        <p className="text-sm text-gray-600">This action needs a fresh password check first.</p>
+        <h2 className="text-lg font-bold text-gray-700">Confirm it's you</h2>
+        <p className="text-sm text-gray-500 font-medium">This action needs a fresh password check first.</p>
         <input
           type="password"
           autoFocus
@@ -74,33 +73,30 @@ export function useStepUp() {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded border px-3 py-2"
-          style={{ borderRadius: 'var(--nest-radius)' }}
+          className="w-full neu-inset rounded-xl px-4 py-3 text-sm outline-none font-medium text-gray-700"
         />
         <input
           type="text"
           placeholder="2FA code (if enabled)"
           value={totp}
           onChange={(e) => setTotp(e.target.value)}
-          className="w-full rounded border px-3 py-2"
-          style={{ borderRadius: 'var(--nest-radius)' }}
+          className="w-full neu-inset rounded-xl px-4 py-3 text-sm outline-none font-medium text-gray-700"
         />
         {error && (
-          <p className="text-sm" style={{ color: 'var(--nest-color-danger)' }}>
+          <p className="text-sm font-bold text-red-600">
             {error}
           </p>
         )}
-        <div className="flex justify-end gap-2">
-          <button type="button" onClick={cancelStepUp} className="px-3 py-1.5 text-sm rounded border">
+        <div className="flex justify-end gap-3 pt-2">
+          <button type="button" onClick={cancelStepUp} className="neu-button px-4 py-2 text-sm font-bold text-gray-500 hover:text-gray-700 transition-all rounded-xl">
             Cancel
           </button>
           <button
             type="submit"
             disabled={submitting}
-            className="px-3 py-1.5 text-sm rounded text-white disabled:opacity-60"
-            style={{ background: 'var(--nest-color-accent)' }}
+            className="neu-button px-4 py-2 text-sm font-bold text-blue-600 transition-all rounded-xl disabled:opacity-60"
           >
-            {submitting ? 'Checking…' : 'Confirm'}
+            Confirm
           </button>
         </div>
       </form>

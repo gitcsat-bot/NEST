@@ -2,29 +2,90 @@
 @tailwind components;
 @tailwind utilities;
 
-/* UI/UX Spec §2.1 — token categories. Exact values are a placeholder
-   starting point (a neutral scale + one accent + four semantic colors),
-   to be reconciled with the design system workstream, not treated as
-   final. */
 :root {
   --nest-color-accent: #2563eb;
   --nest-color-success: #16a34a;
   --nest-color-warning: #d97706;
   --nest-color-danger: #dc2626;
   --nest-color-info: #0891b2;
-  --nest-radius: 6px;
+  --nest-radius: 12px;
+  
+  /* Light mode (brighter with white highlights) */
+  --nest-bg: #f0f0f3;
+  --neu-shadow-dark: #c8c8cf;
+  --neu-shadow-light: #ffffff;
+  --text-main: #334155;
+  --text-muted: #64748b;
+  --border-color: rgba(200, 200, 207, 0.4);
+}
+
+.dark {
+  /* Dark mode (Pistol grey) */
+  --nest-bg: #2d3136;
+  --neu-shadow-dark: #222529;
+  --neu-shadow-light: #383d43;
+  --text-main: #e2e8f0;
+  --text-muted: #94a3b8;
+  --border-color: rgba(34, 37, 41, 0.6);
 }
 
 body {
   font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  background-color: var(--nest-bg);
+  color: var(--text-main);
+  transition: background-color 0.3s, color 0.3s;
 }
 
-/* UI/UX Spec §11 — visible focus indicator, never removed without an
-   equally visible replacement. */
+/* Tailwind overrides for dark mode consistency */
+.text-gray-900, .text-gray-700, .text-gray-800 { color: var(--text-main) !important; }
+.text-gray-600, .text-gray-500, .text-gray-400 { color: var(--text-muted) !important; }
+.border-gray-200, .border-gray-100, .border-gray-200\/50, .border-b { border-color: var(--border-color) !important; }
+
 :focus-visible {
   outline: 2px solid var(--nest-color-accent);
   outline-offset: 2px;
 }
+
+/* Neumorphism Utilities */
+.neu-flat {
+  background: var(--nest-bg);
+  box-shadow: 8px 8px 16px var(--neu-shadow-dark), -8px -8px 16px var(--neu-shadow-light);
+  border-radius: var(--nest-radius);
+  transition: all 0.2s ease-in-out;
+}
+.neu-flat:hover {
+  box-shadow: 10px 10px 20px var(--neu-shadow-dark), -10px -10px 20px var(--neu-shadow-light);
+}
+
+.neu-button {
+  background: var(--nest-bg);
+  box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light);
+  border-radius: var(--nest-radius);
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  border: none;
+  font-weight: 500;
+  color: var(--text-main);
+}
+.neu-button:hover {
+  box-shadow: 8px 8px 16px var(--neu-shadow-dark), -8px -8px 16px var(--neu-shadow-light);
+  color: var(--nest-color-accent);
+}
+.neu-button:active {
+  box-shadow: inset 4px 4px 8px var(--neu-shadow-dark), inset -4px -4px 8px var(--neu-shadow-light);
+}
+
+.neu-inset {
+  background: var(--nest-bg);
+  box-shadow: inset 6px 6px 12px var(--neu-shadow-dark), inset -6px -6px 12px var(--neu-shadow-light);
+  border-radius: var(--nest-radius);
+  color: var(--text-main);
+}
+.neu-inset::placeholder {
+  color: var(--text-muted);
+}
+
+
 
 @media (prefers-reduced-motion: reduce) {
   * {

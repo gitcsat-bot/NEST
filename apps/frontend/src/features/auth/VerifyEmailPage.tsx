@@ -32,16 +32,17 @@ export function VerifyEmailPage() {
   }, [token]);
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="bg-blue-600 p-8 text-center text-white flex flex-col items-center">
-          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center p-2 shadow-inner mb-4">
-            <img src="/assets/csat-logo.png" alt="CSAT Logo" className="w-full h-full object-contain" />
+    <main className="min-h-screen flex items-center justify-center p-4">
+      <div className="w-full max-w-md neu-flat rounded-3xl overflow-hidden p-6 md:p-8">
+        <div className="text-center flex flex-col items-center mb-8">
+          <div className="w-20 h-20 neu-flat rounded-full flex items-center justify-center p-3 mb-5">
+            <img src="/assets/csat-logo.png" alt="CSAT Logo" className="w-full h-full object-contain hidden dark:block" />
+            <img src="/assets/csat-logo-dark.png" alt="CSAT Logo Dark" className="w-full h-full object-contain dark:hidden" />
           </div>
-          <h1 className="text-xl font-bold tracking-tight">Email Verification</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-700 border-b border-gray-200/50 pb-4 w-full">Email Verification</h1>
         </div>
 
-        <div className="p-8 text-center">
+        <div className="text-center">
           {status === 'verifying' && (
             <div className="flex flex-col items-center justify-center space-y-4">
               <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
@@ -52,11 +53,11 @@ export function VerifyEmailPage() {
           {status === 'success' && (
             <div className="flex flex-col items-center justify-center space-y-4">
               <CheckCircle2 className="w-16 h-16 text-emerald-500" />
-              <h2 className="text-2xl font-bold text-gray-900">Verified!</h2>
-              <p className="text-gray-600">Your email address has been successfully verified.</p>
+              <h2 className="text-2xl font-bold text-gray-700">Verified!</h2>
+              <p className="text-gray-600 font-medium">Your email address has been successfully verified.</p>
               <Link 
                 to="/login" 
-                className="mt-6 w-full flex items-center justify-center rounded-lg py-3 font-bold text-white transition-all bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg"
+                className="mt-6 w-full flex items-center justify-center rounded-xl py-4 font-bold text-blue-600 neu-button transition-all"
               >
                 Continue to Login
               </Link>
@@ -66,11 +67,11 @@ export function VerifyEmailPage() {
           {status === 'error' && (
             <div className="flex flex-col items-center justify-center space-y-4">
               <AlertTriangle className="w-16 h-16 text-red-500" />
-              <h2 className="text-2xl font-bold text-gray-900">Verification Failed</h2>
+              <h2 className="text-2xl font-bold text-gray-700">Verification Failed</h2>
               <p className="text-red-600 font-medium">{errorMsg}</p>
               <Link 
                 to="/login" 
-                className="mt-6 text-blue-600 hover:text-blue-800 font-medium underline transition-colors"
+                className="mt-6 text-blue-600 hover:text-blue-800 font-bold transition-colors"
               >
                 Back to Login
               </Link>
@@ -81,3 +82,4 @@ export function VerifyEmailPage() {
     </main>
   );
 }
+

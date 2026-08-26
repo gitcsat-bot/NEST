@@ -6,6 +6,7 @@ import { Gender } from '../enums';
 export interface LoginRequestDto {
   email: string;
   password: string;
+  remember_me?: boolean;
 }
 
 export interface RegisterRequestDto {
@@ -42,6 +43,7 @@ export type LoginResponseDto = LoginSuccessResponseDto | LoginTwoFactorRequiredR
 export interface TwoFactorVerifyRequestDto {
   pending_token: string;
   code: string;
+  remember_me?: boolean;
 }
 
 export interface TwoFactorEnrollResponseDto {

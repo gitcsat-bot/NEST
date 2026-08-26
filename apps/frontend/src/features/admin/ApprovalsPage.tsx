@@ -88,22 +88,24 @@ export function ApprovalsPage() {
   const totalPages = Math.ceil(total / 25);
 
   return (
-    <div>
-      <h1 className="text-xl font-semibold mb-2">Users &amp; Approvals</h1>
-      <p className="text-sm text-gray-600 mb-4">
-        {view === 'pending'
-          ? 'Accounts that registered requesting a role above viewer, awaiting admin sign-off.'
-          : 'Every account and its current role. A pending row still shows Approve/Reject.'}
-      </p>
+    <div className="p-4 md:p-8 max-w-7xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-700 mb-2">Users &amp; Approvals</h1>
+        <p className="text-sm font-medium text-gray-600">
+          {view === 'pending'
+            ? 'Accounts that registered requesting a role above viewer, awaiting admin sign-off.'
+            : 'Every account and its current role. A pending row still shows Approve/Reject.'}
+        </p>
+      </div>
 
-      <div className="flex gap-1 mb-4 border-b">
+      <div className="flex gap-4 mb-8">
         <button
           onClick={() => {
             setView('pending');
             setPage(1);
           }}
-          className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
-            view === 'pending' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-800'
+          className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+            view === 'pending' ? 'neu-button text-blue-600' : 'text-gray-500 hover:text-gray-700'
           }`}
         >
           Pending approvals
@@ -113,8 +115,8 @@ export function ApprovalsPage() {
             setView('all');
             setPage(1);
           }}
-          className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
-            view === 'all' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-800'
+          className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+            view === 'all' ? 'neu-button text-blue-600' : 'text-gray-500 hover:text-gray-700'
           }`}
         >
           All users
@@ -124,8 +126,8 @@ export function ApprovalsPage() {
             setView('students');
             setPage(1);
           }}
-          className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
-            view === 'students' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-800'
+          className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+            view === 'students' ? 'neu-button text-blue-600' : 'text-gray-500 hover:text-gray-700'
           }`}
         >
           Students
@@ -135,134 +137,130 @@ export function ApprovalsPage() {
       {error && (
         <div
           role="alert"
-          className="mb-4 rounded p-3 text-sm"
-          style={{ background: '#fef2f2', color: 'var(--nest-color-danger)' }}
+          className="mb-8 rounded-xl p-4 text-sm neu-inset text-red-600 font-medium"
         >
           {error}
         </div>
       )}
 
       {loading ? (
-        <p className="text-gray-500 text-sm">Loading…</p>
+        <p className="text-gray-500 text-sm font-medium">Loading…</p>
       ) : items.length === 0 ? (
-        <p className="text-gray-500 text-sm">
+        <p className="text-gray-500 text-sm font-medium">
           {view === 'pending' ? 'No pending role requests.' : 'No users found.'}
         </p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr className="border-b text-left">
-                <th className="py-2 px-2">User</th>
-                <th className="py-2 px-2">Role</th>
-                <th className="py-2 px-2">Pending role</th>
-                {view === 'all' && <th className="py-2 px-2">Status</th>}
-                {view === 'students' && (
-                  <>
-                    <th className="py-2 px-2">WhatsApp</th>
-                    <th className="py-2 px-2">Subsystem</th>
-                    <th className="py-2 px-2">Team Role</th>
-                  </>
-                )}
-                <th className="py-2 px-2">Registered</th>
-                <th className="py-2 px-2"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((u) => (
-                <tr key={u.id} className="border-b hover:bg-gray-50">
-                  <td className="py-2 px-2">
-                    <div className="font-medium">{u.display_name}</div>
-                    <div className="text-xs text-gray-500">{u.email}</div>
-                  </td>
-                  <td className="py-2 px-2 font-mono text-xs uppercase">{u.role}</td>
-                  <td className="py-2 px-2 font-mono text-xs uppercase font-semibold">
-                    {u.pending_role ?? <span className="text-gray-400 font-normal normal-case">—</span>}
-                  </td>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {items.map((u) => (
+            <div key={u.id} className="neu-flat rounded-xl p-6 flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-start mb-4 border-b border-gray-200/50 pb-4">
+                  <div className="overflow-hidden">
+                    <div className="font-bold text-gray-700 text-lg truncate">{u.display_name}</div>
+                    <div className="text-xs text-gray-500 font-medium truncate mt-1">{u.email}</div>
+                  </div>
                   {view === 'all' && (
-                    <td className="py-2 px-2">
-                      <span
-                        className="inline-block px-2 py-0.5 rounded text-xs"
-                        style={
-                          u.is_active
-                            ? { background: '#ecfdf5', color: '#047857' }
-                            : { background: '#f3f4f6', color: '#6b7280' }
-                        }
-                      >
-                        {u.is_active ? 'Active' : 'Deactivated'}
-                      </span>
-                    </td>
+                    <span
+                      className={`inline-block px-3 py-1 rounded-full text-xs font-bold neu-inset ${
+                        u.is_active ? 'text-emerald-600' : 'text-gray-500'
+                      }`}
+                    >
+                      {u.is_active ? 'Active' : 'Inactive'}
+                    </span>
                   )}
+                </div>
+
+                <div className="space-y-3 mb-6 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 font-medium">Role</span>
+                    <span className="font-mono font-bold text-gray-700 uppercase">{u.role}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 font-medium">Pending Role</span>
+                    <span className="font-mono font-bold text-blue-600 uppercase">
+                      {u.pending_role ?? <span className="text-gray-400 font-normal normal-case">—</span>}
+                    </span>
+                  </div>
                   {view === 'students' && (
                     <>
-                      <td className="py-2 px-2 text-xs">{u.whatsapp_number ?? '—'}</td>
-                      <td className="py-2 px-2 text-xs">{u.subsystem ?? '—'}</td>
-                      <td className="py-2 px-2 text-xs">{u.team_role ?? '—'}</td>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 font-medium">WhatsApp</span>
+                        <span className="font-medium text-gray-700">{u.whatsapp_number ?? '—'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 font-medium">Subsystem</span>
+                        <span className="font-medium text-gray-700">{u.subsystem ?? '—'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 font-medium">Team Role</span>
+                        <span className="font-medium text-gray-700">{u.team_role ?? '—'}</span>
+                      </div>
                     </>
                   )}
-                  <td className="py-2 px-2 text-gray-500">{new Date(u.created_at).toLocaleString()}</td>
-                  <td className="py-2 px-2">
-                    <div className="flex gap-2">
-                      {u.pending_role && (
-                        <>
-                          <button
-                            type="button"
-                            disabled={actingOnId === u.id}
-                            onClick={() => handleDecision(u.id, 'approve')}
-                            className="text-xs px-2 py-1 rounded text-white disabled:opacity-60"
-                            style={{ background: 'var(--nest-color-accent)' }}
-                          >
-                            Approve
-                          </button>
-                          <button
-                            type="button"
-                            disabled={actingOnId === u.id}
-                            onClick={() => handleDecision(u.id, 'reject')}
-                            className="text-xs px-2 py-1 rounded border disabled:opacity-60"
-                            style={{ color: 'var(--nest-color-danger)' }}
-                          >
-                            Reject
-                          </button>
-                        </>
-                      )}
-                      {view === 'all' && (
-                        <button
-                          type="button"
-                          disabled={actingOnId === u.id}
-                          onClick={() => handleToggleActive(u.id, u.is_active)}
-                          className="text-xs px-2 py-1 rounded border disabled:opacity-60"
-                          style={{ color: u.is_active ? 'var(--nest-color-danger)' : '#047857', borderColor: u.is_active ? 'var(--nest-color-danger)' : '#047857' }}
-                        >
-                          {u.is_active ? 'Suspend' : 'Restore'}
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 font-medium">Registered</span>
+                    <span className="font-medium text-gray-700">{new Date(u.created_at).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t border-gray-200/50 mt-auto justify-end">
+                {u.pending_role && (
+                  <>
+                    <button
+                      type="button"
+                      disabled={actingOnId === u.id}
+                      onClick={() => handleDecision(u.id, 'reject')}
+                      className="px-4 py-2 rounded-xl text-sm font-bold text-red-600 neu-button disabled:opacity-50"
+                    >
+                      Reject
+                    </button>
+                    <button
+                      type="button"
+                      disabled={actingOnId === u.id}
+                      onClick={() => handleDecision(u.id, 'approve')}
+                      className="px-4 py-2 rounded-xl text-sm font-bold text-emerald-600 neu-button disabled:opacity-50"
+                    >
+                      Approve
+                    </button>
+                  </>
+                )}
+                {view === 'all' && (
+                  <button
+                    type="button"
+                    disabled={actingOnId === u.id}
+                    onClick={() => handleToggleActive(u.id, u.is_active)}
+                    className={`px-4 py-2 rounded-xl text-sm font-bold neu-button disabled:opacity-50 ${
+                      u.is_active ? 'text-red-600' : 'text-emerald-600'
+                    }`}
+                  >
+                    {u.is_active ? 'Suspend' : 'Restore'}
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
       {view === 'all' && totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4 text-sm">
-          <span className="text-gray-500">{total} total</span>
-          <div className="flex gap-2">
+        <div className="flex items-center justify-between mt-8 text-sm">
+          <span className="text-gray-500 font-medium">{total} total items</span>
+          <div className="flex gap-3 items-center">
             <button
               disabled={page <= 1}
               onClick={() => setPage(page - 1)}
-              className="px-3 py-1 rounded border disabled:opacity-40"
+              className="px-4 py-2 rounded-xl font-bold text-gray-700 neu-button disabled:opacity-40"
             >
               Previous
             </button>
-            <span className="px-2 py-1">
+            <span className="px-3 py-2 rounded-xl neu-inset font-bold text-gray-700">
               Page {page} of {totalPages}
             </span>
             <button
               disabled={page >= totalPages}
               onClick={() => setPage(page + 1)}
-              className="px-3 py-1 rounded border disabled:opacity-40"
+              className="px-4 py-2 rounded-xl font-bold text-gray-700 neu-button disabled:opacity-40"
             >
               Next
             </button>

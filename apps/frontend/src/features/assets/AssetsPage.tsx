@@ -37,70 +37,64 @@ export function AssetsPage() {
   }
 
   return (
-    <main style={{ padding: '2rem', minHeight: '100vh', backgroundColor: '#f9fafb' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Asset Tracking</h1>
+    <div className="p-4 md:p-8 max-w-7xl mx-auto">
+      <header className="flex justify-between items-center mb-8">
+        <h1 className="text-2xl font-bold text-gray-700">Asset Tracking</h1>
       </header>
 
-      <form onSubmit={handleSearch} style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+      <form onSubmit={handleSearch} className="flex gap-4 mb-8">
         <input 
           type="text" 
           placeholder="Search by ID, Serial, or Name..."
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
-          style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc', flex: 1 }}
+          className="flex-1 neu-inset rounded-xl px-4 py-3 text-sm outline-none text-gray-700"
         />
-        <button type="submit" style={{ padding: '0.5rem 1rem', background: 'var(--nest-color-accent)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Search</button>
+        <button type="submit" className="neu-button px-6 py-3 rounded-xl font-medium text-blue-600">Search</button>
       </form>
 
       {loading ? (
-        <p>Loading...</p>
+        <p className="text-gray-500 text-sm">Loading...</p>
+      ) : assets.length === 0 ? (
+        <p className="text-gray-500 text-sm">No assets found.</p>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-          <thead>
-            <tr style={{ borderBottom: '2px solid #eee', textAlign: 'left' }}>
-              <th style={{ padding: '1rem' }}>Display Code</th>
-              <th style={{ padding: '1rem' }}>Name</th>
-              <th style={{ padding: '1rem' }}>Status</th>
-              <th style={{ padding: '1rem' }}>Location</th>
-              <th style={{ padding: '1rem' }}>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {assets.map(asset => (
-              <tr key={asset.id} style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ padding: '1rem' }}>{asset.displayCode}</td>
-                <td style={{ padding: '1rem' }}>{asset.assetDefinition?.name}</td>
-                <td style={{ padding: '1rem' }}>
-                  <span style={{ 
-                    padding: '0.25rem 0.5rem', 
-                    borderRadius: '12px', 
-                    fontSize: '0.875rem',
-                    backgroundColor: asset.status === 'available' ? '#dcfce7' : '#fee2e2',
-                    color: asset.status === 'available' ? '#166534' : '#991b1b'
-                  }}>
-                    {asset.status}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {assets.map(asset => (
+            <div key={asset.id} className="neu-flat rounded-xl p-5 flex flex-col justify-between cursor-pointer" onClick={() => navigate(`/assets/${asset.id}`)}>
+              <div>
+                <div className="flex justify-between items-start mb-3">
+                  <h3 className="font-bold text-lg text-gray-700 truncate pr-2" title={asset.assetDefinition?.name}>{asset.assetDefinition?.name}</h3>
+                  <span className="text-xs font-mono neu-inset px-2 py-1 rounded text-blue-700 font-bold flex-shrink-0">
+                    {asset.displayCode}
                   </span>
-                </td>
-                <td style={{ padding: '1rem' }}>{asset.currentLocation?.name || 'Unknown'}</td>
-                <td style={{ padding: '1rem' }}>
-                  <button 
-                    onClick={() => navigate(`/assets/${asset.id}`)}
-                    style={{ background: 'transparent', color: 'var(--nest-color-accent)', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
-                  >
-                    View Details
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {assets.length === 0 && (
-              <tr>
-                <td colSpan={5} style={{ padding: '1rem', textAlign: 'center' }}>No assets found.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                </div>
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500">Status</span>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold neu-inset uppercase tracking-wider ${
+                      asset.status === 'available' ? 'text-emerald-600' : 
+                      asset.status === 'checked_out' ? 'text-amber-600' :
+                      asset.status === 'maintenance' ? 'text-orange-600' :
+                      'text-red-600'
+                    }`}>
+                      {asset.status.replace('_', ' ')}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500">Location</span>
+                    <span className="text-gray-700 font-medium truncate ml-2" title={asset.currentLocation?.name || 'Unknown'}>
+                      {asset.currentLocation?.name || 'Unknown'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="pt-4 border-t border-gray-200/50 mt-auto text-right">
+                <span className="text-sm text-blue-600 font-medium">View Details →</span>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
-    </main>
+    </div>
   );
 }

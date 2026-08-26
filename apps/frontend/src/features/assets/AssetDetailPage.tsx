@@ -82,58 +82,81 @@ export function AssetDetailPage() {
     }
   }
 
-  if (loading) return <main style={{ padding: '2rem' }}><p>Loading...</p></main>;
-  if (!asset) return <main style={{ padding: '2rem' }}><p>Asset not found</p></main>;
+  if (loading) return <main className="p-4 md:p-8 max-w-4xl mx-auto"><p className="text-gray-500 font-medium">Loading asset details...</p></main>;
+  if (!asset) return <main className="p-4 md:p-8 max-w-4xl mx-auto"><p className="text-red-500 font-medium">Asset not found</p></main>;
 
   return (
-    <main style={{ padding: '2rem', minHeight: '100vh', backgroundColor: '#f9fafb' }}>
-      <button onClick={() => navigate('/assets')} style={{ marginBottom: '1rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--nest-color-accent)', textDecoration: 'underline' }}>
+    <div className="p-4 md:p-8 max-w-4xl mx-auto">
+      <button 
+        onClick={() => navigate('/assets')} 
+        className="mb-6 neu-button px-4 py-2 rounded-xl text-blue-600 font-medium text-sm flex items-center gap-2"
+      >
         &larr; Back to Assets
       </button>
 
-      <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-        <h1 style={{ fontSize: '1.8rem', fontWeight: 600, marginBottom: '0.5rem' }}>{asset.displayCode} - {asset.assetDefinition?.name}</h1>
-        <div style={{ display: 'flex', gap: '2rem', marginBottom: '2rem' }}>
-          <div>
-            <p style={{ color: '#666', fontSize: '0.875rem' }}>Status</p>
-            <p style={{ fontWeight: 500 }}>{asset.status}</p>
+      <div className="neu-flat p-8 rounded-2xl">
+        <h1 className="text-2xl font-bold text-gray-700 mb-2 truncate">
+          <span className="text-blue-600 mr-2">{asset.displayCode}</span> 
+          {asset.assetDefinition?.name}
+        </h1>
+        
+        <div className="flex flex-wrap gap-6 md:gap-10 my-8">
+          <div className="neu-inset p-4 rounded-xl flex-1 min-w-[150px]">
+            <p className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">Status</p>
+            <p className={`font-semibold capitalize ${
+              asset.status === 'available' ? 'text-emerald-600' : 
+              asset.status === 'issued' ? 'text-blue-600' : 'text-gray-700'
+            }`}>{asset.status.replace('_', ' ')}</p>
           </div>
-          <div>
-            <p style={{ color: '#666', fontSize: '0.875rem' }}>Current Location</p>
-            <p style={{ fontWeight: 500 }}>{asset.currentLocation?.name || 'Unknown'}</p>
+          <div className="neu-inset p-4 rounded-xl flex-1 min-w-[150px]">
+            <p className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">Current Location</p>
+            <p className="font-semibold text-gray-700 truncate">{asset.currentLocation?.name || 'Unknown'}</p>
           </div>
           {asset.currentHolder && (
-            <div>
-              <p style={{ color: '#666', fontSize: '0.875rem' }}>Current Holder</p>
-              <p style={{ fontWeight: 500 }}>{asset.currentHolder.displayName}</p>
+            <div className="neu-inset p-4 rounded-xl flex-1 min-w-[150px]">
+              <p className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">Current Holder</p>
+              <p className="font-semibold text-blue-600 truncate">{asset.currentHolder.displayName}</p>
             </div>
           )}
         </div>
 
-        <div style={{ display: 'flex', gap: '1rem', borderTop: '1px solid #eee', paddingTop: '1.5rem' }}>
+        <div className="flex gap-4 border-t border-gray-200/50 pt-6">
           {asset.status === 'available' && (
-            <button onClick={() => setShowCheckout(true)} style={btnStyle}>Check Out</button>
+            <button onClick={() => setShowCheckout(true)} className="neu-button px-6 py-2.5 rounded-xl font-medium text-emerald-600 flex-1 md:flex-none">
+              Check Out
+            </button>
           )}
           {asset.status === 'issued' && (
-            <button onClick={() => setShowCheckin(true)} style={btnStyle}>Check In</button>
+            <button onClick={() => setShowCheckin(true)} className="neu-button px-6 py-2.5 rounded-xl font-medium text-amber-600 flex-1 md:flex-none">
+              Check In
+            </button>
           )}
-          <button onClick={() => setShowTransfer(true)} style={{ ...btnStyle, backgroundColor: '#4b5563' }}>Transfer</button>
+          <button onClick={() => setShowTransfer(true)} className="neu-button px-6 py-2.5 rounded-xl font-medium text-blue-600 flex-1 md:flex-none">
+            Transfer Location
+          </button>
         </div>
       </div>
 
       {/* Check Out Modal */}
       {showCheckout && (
-        <div style={modalOverlay}>
-          <div style={modalContent}>
-            <h2>Check Out Asset</h2>
-            <form onSubmit={handleCheckout}>
-              <div style={{ margin: '1rem 0' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem' }}>User ID to hold asset:</label>
-                <input required type="text" value={targetUserId} onChange={e => setTargetUserId(e.target.value)} style={inputStyle} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md neu-flat rounded-2xl p-6 md:p-8 space-y-5">
+            <h2 className="text-xl font-bold text-gray-700 border-b border-gray-200/50 pb-3">Check Out Asset</h2>
+            <form onSubmit={handleCheckout} className="space-y-5">
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-2">User ID to hold asset:</label>
+                <input 
+                  required type="text" 
+                  value={targetUserId} 
+                  onChange={e => setTargetUserId(e.target.value)} 
+                  className="w-full neu-inset rounded-xl px-4 py-3 text-sm outline-none text-gray-700" 
+                />
               </div>
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                <button type="button" onClick={() => setShowCheckout(false)} style={btnOutlineStyle}>Cancel</button>
-                <button type="submit" disabled={actionLoading} style={btnStyle}>{actionLoading ? 'Processing...' : 'Confirm'}</button>
+              <div className="flex gap-4 justify-end pt-4 border-t border-gray-200/50">
+                <button type="button" onClick={() => setShowCheckout(false)} className="px-5 py-2.5 text-sm font-medium text-gray-600 neu-button rounded-xl">Cancel</button>
+                <button type="submit" disabled={actionLoading} className="px-5 py-2.5 text-sm font-medium text-emerald-600 neu-button rounded-xl disabled:opacity-50">
+                  {actionLoading ? 'Processing...' : 'Confirm'}
+                </button>
               </div>
             </form>
           </div>
@@ -142,13 +165,15 @@ export function AssetDetailPage() {
 
       {/* Check In Modal */}
       {showCheckin && (
-        <div style={modalOverlay}>
-          <div style={modalContent}>
-            <h2>Check In Asset</h2>
-            <p style={{ margin: '1rem 0' }}>Are you sure you want to return this asset to available inventory?</p>
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-              <button type="button" onClick={() => setShowCheckin(false)} style={btnOutlineStyle}>Cancel</button>
-              <button onClick={handleCheckin} disabled={actionLoading} style={btnStyle}>{actionLoading ? 'Processing...' : 'Confirm Check In'}</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md neu-flat rounded-2xl p-6 md:p-8 space-y-5">
+            <h2 className="text-xl font-bold text-gray-700 border-b border-gray-200/50 pb-3">Check In Asset</h2>
+            <p className="text-gray-600 font-medium">Are you sure you want to return this asset to available inventory?</p>
+            <div className="flex gap-4 justify-end pt-4 border-t border-gray-200/50">
+              <button type="button" onClick={() => setShowCheckin(false)} className="px-5 py-2.5 text-sm font-medium text-gray-600 neu-button rounded-xl">Cancel</button>
+              <button onClick={handleCheckin} disabled={actionLoading} className="px-5 py-2.5 text-sm font-medium text-blue-600 neu-button rounded-xl disabled:opacity-50">
+                {actionLoading ? 'Processing...' : 'Check In'}
+              </button>
             </div>
           </div>
         </div>
@@ -156,28 +181,29 @@ export function AssetDetailPage() {
 
       {/* Transfer Modal */}
       {showTransfer && (
-        <div style={modalOverlay}>
-          <div style={modalContent}>
-            <h2>Transfer Asset</h2>
-            <form onSubmit={handleTransfer}>
-              <div style={{ margin: '1rem 0' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem' }}>Destination Location ID:</label>
-                <input required type="text" value={targetLocationId} onChange={e => setTargetLocationId(e.target.value)} style={inputStyle} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md neu-flat rounded-2xl p-6 md:p-8 space-y-5">
+            <h2 className="text-xl font-bold text-gray-700 border-b border-gray-200/50 pb-3">Transfer Location</h2>
+            <form onSubmit={handleTransfer} className="space-y-5">
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-2">Destination Location ID:</label>
+                <input 
+                  required type="text" 
+                  value={targetLocationId} 
+                  onChange={e => setTargetLocationId(e.target.value)} 
+                  className="w-full neu-inset rounded-xl px-4 py-3 text-sm outline-none text-gray-700" 
+                />
               </div>
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                <button type="button" onClick={() => setShowTransfer(false)} style={btnOutlineStyle}>Cancel</button>
-                <button type="submit" disabled={actionLoading} style={btnStyle}>{actionLoading ? 'Processing...' : 'Confirm Transfer'}</button>
+              <div className="flex gap-4 justify-end pt-4 border-t border-gray-200/50">
+                <button type="button" onClick={() => setShowTransfer(false)} className="px-5 py-2.5 text-sm font-medium text-gray-600 neu-button rounded-xl">Cancel</button>
+                <button type="submit" disabled={actionLoading} className="px-5 py-2.5 text-sm font-medium text-blue-600 neu-button rounded-xl disabled:opacity-50">
+                  {actionLoading ? 'Processing...' : 'Confirm'}
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }
-
-const btnStyle = { padding: '0.5rem 1rem', background: 'var(--nest-color-accent)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 500 };
-const btnOutlineStyle = { padding: '0.5rem 1rem', background: 'transparent', color: '#333', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer', fontWeight: 500 };
-const inputStyle = { width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' };
-const modalOverlay: React.CSSProperties = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' };
-const modalContent: React.CSSProperties = { backgroundColor: 'white', padding: '2rem', borderRadius: '8px', minWidth: '400px' };

@@ -34,6 +34,19 @@ export class UsersService {
       ...(filters.hasPendingRole !== undefined
         ? { pendingRole: filters.hasPendingRole ? { not: null } : null }
         : {}),
+      // Exclude all Test Email accounts (seeded by seed-test-accounts.ts).
+      // Test accounts carry the reserved repeating-digit MIS IDs (000000000–999999999)
+      // which the production IsMisIdConstraint DTO validator rejects, so real users
+      // can never have these. Excluding by misId here means test accounts are fully
+      // invisible in the Admin Users panel without needing a separate DB flag.
+      NOT: {
+        misId: {
+          in: [
+            '000000000', '111111111', '222222222', '333333333', '444444444',
+            '555555555', '666666666', '777777777', '888888888', '999999999',
+          ],
+        },
+      },
     };
     const [items, total] = await Promise.all([
       this.prisma.user.findMany({
@@ -256,6 +269,15 @@ export class UsersService {
     });
 
     return this.toDto(updated);
+  }
+
+  async deleteAccount(userId: string) {
+    // Delete account
+    // For a real app, this should probably be soft delete or check for existing relationships
+    // But since Prisma doesn't cascade deletes manually without ON DELETE CASCADE on relations,
+    // we will hard delete if possible, or deactivate.
+    // Let's do a hard delete inside a transaction to remove user data.
+    return this.prisma.user.delete({ where: { id: userId } });
   }
 
   private toDto(user: {

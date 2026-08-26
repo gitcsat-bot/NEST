@@ -69,7 +69,7 @@ export function LocationTypeahead({
             setQuery(e.target.value);
             if (!isOpen) setIsOpen(true);
           }}
-          className="w-full rounded border px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+          className="w-full neu-inset px-4 py-3 text-sm outline-none font-medium text-gray-700 disabled:opacity-60"
           style={{ borderRadius: 'var(--nest-radius)' }}
         />
         {value && !disabled && (
@@ -81,7 +81,7 @@ export function LocationTypeahead({
               setQuery('');
               setIsOpen(false);
             }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs px-1"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 font-bold px-1"
           >
             Clear
           </button>
@@ -89,20 +89,20 @@ export function LocationTypeahead({
       </div>
 
       {isOpen && (
-        <ul className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded border bg-white py-1 shadow-lg text-sm">
+        <ul className="absolute z-50 mt-1 max-h-60 w-full overflow-auto neu-flat py-1 shadow-lg text-sm rounded-xl">
           <li
             onClick={() => {
               onChange(null);
               setIsOpen(false);
             }}
-            className={`cursor-pointer px-3 py-2 text-gray-500 hover:bg-gray-100 ${
-              value === null ? 'bg-blue-50 text-blue-700 font-medium' : ''
+            className={`cursor-pointer px-4 py-2 hover:text-blue-600 transition-colors ${
+              value === null ? 'neu-inset text-blue-600 font-bold' : 'text-gray-500'
             }`}
           >
             <em>None (Top Level)</em>
           </li>
           {filteredLocations.length === 0 ? (
-            <li className="px-3 py-2 text-gray-400">No locations found</li>
+            <li className="px-4 py-2 text-gray-400">No locations found</li>
           ) : (
             filteredLocations.map((loc) => {
               const isSelected = loc.id === value;
@@ -113,13 +113,13 @@ export function LocationTypeahead({
                     onChange(loc.id);
                     setIsOpen(false);
                   }}
-                  className={`cursor-pointer px-3 py-2 hover:bg-blue-50 ${
-                    isSelected ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-800'
+                  className={`cursor-pointer px-4 py-2 transition-colors hover:text-blue-600 ${
+                    isSelected ? 'neu-inset text-blue-600 font-bold' : 'text-gray-700'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span>{loc.name}</span>
-                    <span className="text-xs rounded bg-gray-100 px-1.5 py-0.5 text-gray-600 font-mono">
+                    <span className="text-xs rounded-md neu-inset px-2 py-1 text-gray-500 font-mono font-medium">
                       {loc.type}
                     </span>
                   </div>

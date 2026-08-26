@@ -92,7 +92,7 @@ export class AuthService {
       throw new ForbiddenException({
         status: 'deactivated',
         adminEmails: admins,
-        message: 'This account has been deactivated.',
+        message: 'Your account is suspended by the Admin. Please contact admin.csat@coeptech.ac.in',
       });
     }
 
@@ -143,6 +143,11 @@ export class AuthService {
       userAgent: ctx.userAgent,
     });
     return { user: this.toUserDto(user), rawSessionToken: session.rawToken };
+  }
+
+  async getMe(userId: string) {
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    return this.toUserDto(user);
   }
 
   async verifyTwoFactor(dto: TwoFactorVerifyDto, ctx: RequestContext) {
@@ -308,14 +313,17 @@ export class AuthService {
       throw ApiExceptions.validation([{ field: 'otp', message: 'Invalid or expired OTP.' }]);
     }
     
-    const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
-    if (existing) {
-      throw ApiExceptions.invalidCredentials(); // Don't leak existence in a real app, but for now this is fine
-    }
+    const [existingEmail, existingMisId] = await Promise.all([
+      this.prisma.user.findUnique({ where: { email: dto.email } }),
+      this.prisma.user.findUnique({ where: { misId: dto.mis_id } as any })
+    ]);
 
-    const existingMisId = await this.prisma.user.findUnique({ where: { misId: dto.mis_id } as any });
-    if (existingMisId) {
-      throw ApiExceptions.validation([{ field: 'mis_id', message: 'This MIS ID is already registered.' }]);
+    const errors = [];
+    if (existingEmail) errors.push({ field: 'email', message: 'This Email ID is already registered.' });
+    if (existingMisId) errors.push({ field: 'mis_id', message: 'This MIS ID is already registered.' });
+    
+    if (errors.length > 0) {
+      throw ApiExceptions.validation(errors);
     }
 
     const passwordHash = await argon2.hash(dto.password);

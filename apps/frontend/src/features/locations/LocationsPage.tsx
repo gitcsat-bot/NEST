@@ -260,10 +260,10 @@ export function LocationsPage() {
       <div key={node.id} className="select-none">
         <div
           onClick={() => handleSelectNode(node)}
-          className={`flex items-center justify-between px-3 py-2 text-sm rounded cursor-pointer transition-colors ${
+          className={`flex items-center justify-between px-3 py-2 text-sm rounded-xl cursor-pointer transition-all ${
             isSelected
-              ? 'bg-blue-50 text-blue-900 font-medium'
-              : 'hover:bg-gray-100 text-gray-800'
+              ? 'neu-inset text-blue-600 font-bold'
+              : 'text-gray-700 hover:text-blue-600'
           }`}
           style={{ paddingLeft: `${depth * 1.25 + 0.75}rem` }}
         >
@@ -286,14 +286,14 @@ export function LocationsPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs px-2 py-0.5 rounded bg-gray-100 font-mono text-gray-600">
+            <span className="text-xs px-2 py-1 rounded-md neu-inset font-mono text-gray-500 font-medium">
               {node.type}
             </span>
-            <span className={`text-xs px-2 py-0.5 rounded font-mono ${node.status === LocationStatus.OPEN ? 'bg-green-100 text-green-800' : node.status === LocationStatus.CLOSED ? 'bg-red-100 text-red-800' : 'bg-gray-200 text-gray-800'}`}>
+            <span className={`text-xs px-2 py-1 rounded-md font-mono neu-inset font-bold ${node.status === LocationStatus.OPEN ? 'text-green-600' : node.status === LocationStatus.CLOSED ? 'text-red-600' : 'text-gray-500'}`}>
               {node.status}
             </span>
             {!node.is_active && (
-              <span className="text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-800">
+              <span className="text-xs px-2 py-1 rounded-md neu-inset text-amber-600 font-bold">
                 Archived
               </span>
             )}
@@ -326,8 +326,7 @@ export function LocationsPage() {
           <button
             type="button"
             onClick={() => handleStartCreate(null)}
-            className="inline-flex items-center justify-center rounded px-4 py-2 text-sm font-medium text-white shadow-sm"
-            style={{ background: 'var(--nest-color-accent)', borderRadius: 'var(--nest-radius)' }}
+            className="neu-button px-6 py-2.5 rounded-xl text-sm font-bold text-blue-600 transition-all"
           >
             + Add Location
           </button>
@@ -335,7 +334,7 @@ export function LocationsPage() {
       </div>
 
       {error && (
-        <div role="alert" className="rounded p-4 text-sm bg-red-50 text-red-800">
+        <div role="alert" className="rounded-xl p-4 text-sm neu-inset text-red-600 font-medium">
           {error}
         </div>
       )}
@@ -343,48 +342,47 @@ export function LocationsPage() {
       {/* Main Grid: Tree View (Left) vs Detail/Edit Panel (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Locations Tree */}
-        <div className="lg:col-span-5 bg-white rounded-md shadow-sm border p-4 space-y-4">
+        <div className="lg:col-span-5 neu-flat rounded-xl p-6 space-y-5">
           <div>
             <input
               type="text"
               placeholder="Search locations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              style={{ borderRadius: 'var(--nest-radius)' }}
+              className="w-full neu-inset rounded-xl px-4 py-3 text-sm outline-none text-gray-700"
             />
           </div>
 
           {loading ? (
-            <div className="text-center py-8 text-sm text-gray-500">Loading locations…</div>
+            <div className="text-center py-8 text-sm text-gray-500 font-medium">Loading locations…</div>
           ) : filteredTreeNodes.length === 0 ? (
-            <div className="text-center py-8 text-sm text-gray-500">
+            <div className="text-center py-8 text-sm text-gray-500 font-medium">
               {searchQuery ? `No locations matching "${searchQuery}".` : 'No locations registered yet.'}
             </div>
           ) : (
-            <div className="space-y-0.5 max-h-[600px] overflow-y-auto pr-1">
+            <div className="space-y-1 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
               {filteredTreeNodes.map((node) => renderTreeNode(node))}
             </div>
           )}
         </div>
 
         {/* Right Column: Selected Node Detail / Edit / Create Form */}
-        <div className="lg:col-span-7 bg-white rounded-md shadow-sm border p-6">
+        <div className="lg:col-span-7 neu-flat p-6 md:p-8 flex flex-col h-full">
           {isCreating || isEditing ? (
             /* Create / Edit Form */
-            <form onSubmit={handleFormSubmit} className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900">
+            <form onSubmit={handleFormSubmit} className="space-y-5">
+              <h2 className="text-lg font-semibold text-gray-700 border-b border-gray-200/50 pb-3">
                 {isCreating ? 'Create Location' : `Edit ${selectedDetail?.name}`}
               </h2>
 
               {formError && (
-                <div role="alert" className="rounded p-3 text-sm bg-red-50 text-red-800">
+                <div role="alert" className="rounded-xl p-3 text-sm neu-inset text-red-600 font-medium">
                   {formError}
                 </div>
               )}
 
               <div>
-                <label htmlFor="loc-name" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="loc-name" className="block text-sm font-medium text-gray-600 mb-2">
                   Location Name *
                 </label>
                 <input
@@ -393,21 +391,19 @@ export function LocationsPage() {
                   required
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
-                  className="w-full rounded border px-3 py-2 text-sm"
-                  style={{ borderRadius: 'var(--nest-radius)' }}
+                  className="w-full neu-inset rounded-xl px-4 py-3 text-sm outline-none text-gray-700"
                 />
               </div>
 
               <div>
-                <label htmlFor="loc-type" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="loc-type" className="block text-sm font-medium text-gray-600 mb-2">
                   Location Type *
                 </label>
                 <select
                   id="loc-type"
                   value={formType}
                   onChange={(e) => setFormType(e.target.value as LocationType)}
-                  className="w-full rounded border px-3 py-2 text-sm bg-white"
-                  style={{ borderRadius: 'var(--nest-radius)' }}
+                  className="w-full neu-inset rounded-xl px-4 py-3 text-sm outline-none text-gray-700 bg-transparent"
                 >
                   {Object.values(LocationType).map((t) => (
                     <option key={t} value={t}>
@@ -418,7 +414,7 @@ export function LocationsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-600 mb-2">
                   Parent Location
                 </label>
                 <LocationTypeahead
@@ -430,7 +426,7 @@ export function LocationsPage() {
               </div>
 
               <div>
-                <label htmlFor="loc-desc" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="loc-desc" className="block text-sm font-medium text-gray-600 mb-2">
                   Description
                 </label>
                 <textarea
@@ -438,17 +434,15 @@ export function LocationsPage() {
                   rows={3}
                   value={formDescription}
                   onChange={(e) => setFormDescription(e.target.value)}
-                  className="w-full rounded border px-3 py-2 text-sm"
-                  style={{ borderRadius: 'var(--nest-radius)' }}
+                  className="w-full neu-inset rounded-xl px-4 py-3 text-sm outline-none text-gray-700 resize-y"
                 />
               </div>
 
-              <div className="flex items-center gap-3 pt-2">
+              <div className="flex items-center gap-3 pt-4 border-t border-gray-200/50">
                 <button
                   type="submit"
                   disabled={formSubmitting}
-                  className="rounded px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
-                  style={{ background: 'var(--nest-color-accent)', borderRadius: 'var(--nest-radius)' }}
+                  className="neu-button px-6 py-2.5 rounded-xl text-sm font-bold text-blue-600 transition-all"
                 >
                   {formSubmitting ? 'Saving…' : 'Save Location'}
                 </button>
@@ -459,8 +453,7 @@ export function LocationsPage() {
                     setIsEditing(false);
                     setFormError(null);
                   }}
-                  className="rounded px-4 py-2 text-sm font-medium border text-gray-700 hover:bg-gray-50"
-                  style={{ borderRadius: 'var(--nest-radius)' }}
+                  className="neu-button px-6 py-2.5 rounded-xl text-sm font-bold text-gray-500 hover:text-gray-700 transition-all"
                 >
                   Cancel
                 </button>
@@ -476,7 +469,7 @@ export function LocationsPage() {
                   <h2 className="text-xl font-bold text-gray-900">{selectedDetail.name}</h2>
                   <LocationBreadcrumb breadcrumb={selectedDetail.breadcrumb} className="mt-1" />
                 </div>
-                <span className="text-xs px-2.5 py-1 rounded bg-gray-100 font-mono text-gray-700 font-medium">
+                <span className="text-xs px-3 py-1 rounded-md neu-inset font-mono text-gray-500 font-bold">
                   {selectedDetail.type}
                 </span>
               </div>
@@ -496,7 +489,7 @@ export function LocationsPage() {
                         value={selectedDetail.status}
                         onChange={(e) => handleStatusChange(e.target.value as LocationStatus)}
                         disabled={statusLoading}
-                        className="text-sm rounded border px-2 py-1 bg-gray-50 focus:ring-1 focus:outline-none"
+                        className="text-sm rounded-xl px-3 py-2 neu-inset outline-none font-medium text-gray-700 bg-transparent"
                       >
                         {Object.values(LocationStatus).map(s => (
                           <option key={s} value={s}>{s.toUpperCase()}</option>
@@ -519,16 +512,14 @@ export function LocationsPage() {
                   <button
                     type="button"
                     onClick={handleStartEdit}
-                    className="rounded px-3 py-1.5 text-sm font-medium border text-gray-700 hover:bg-gray-50"
-                    style={{ borderRadius: 'var(--nest-radius)' }}
+                    className="neu-button px-4 py-2 text-sm font-bold text-gray-500 hover:text-gray-700 transition-all rounded-xl"
                   >
                     Edit Details
                   </button>
                   <button
                     type="button"
                     onClick={() => handleStartCreate(selectedDetail.id)}
-                    className="rounded px-3 py-1.5 text-sm font-medium border text-gray-700 hover:bg-gray-50"
-                    style={{ borderRadius: 'var(--nest-radius)' }}
+                    className="neu-button px-4 py-2 text-sm font-bold text-blue-600 transition-all rounded-xl"
                   >
                     + Add Child Location
                   </button>
@@ -539,8 +530,7 @@ export function LocationsPage() {
                         setArchiveError(null);
                         setShowArchiveModal(true);
                       }}
-                      className="rounded px-3 py-1.5 text-sm font-medium border text-red-600 border-red-200 hover:bg-red-50"
-                      style={{ borderRadius: 'var(--nest-radius)' }}
+                      className="neu-button px-4 py-2 text-sm font-bold text-red-600 transition-all rounded-xl"
                     >
                       Archive Location
                     </button>
@@ -561,25 +551,24 @@ export function LocationsPage() {
       {/* Confirm Archive Dialog (UI/UX Spec §2.2 / §9 pattern) */}
       {showArchiveModal && selectedDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md bg-white rounded-md p-6 shadow-xl space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Archive Location</h3>
-            <p className="text-sm text-gray-600">
-              Archive <strong>{selectedDetail.name}</strong>? This location will no longer be available
+          <div className="w-full max-w-md neu-flat rounded-2xl p-6 space-y-4">
+            <h3 className="text-lg font-bold text-gray-700">Archive Location</h3>
+            <p className="text-sm text-gray-500 font-medium">
+              Archive <strong className="text-gray-700">{selectedDetail.name}</strong>? This location will no longer be available
               for new check-outs or transfers. This can be undone by a stores manager.
             </p>
 
             {archiveError && (
-              <div role="alert" className="rounded p-3 text-sm bg-red-50 text-red-800">
+              <div role="alert" className="rounded-xl p-3 text-sm neu-inset text-red-600 font-medium">
                 {archiveError}
               </div>
             )}
 
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200/50">
               <button
                 type="button"
                 onClick={() => setShowArchiveModal(false)}
-                className="rounded px-4 py-2 text-sm font-medium border text-gray-700 hover:bg-gray-50"
-                style={{ borderRadius: 'var(--nest-radius)' }}
+                className="neu-button px-4 py-2 text-sm font-bold text-gray-500 hover:text-gray-700 transition-all"
               >
                 Cancel
               </button>
@@ -587,8 +576,7 @@ export function LocationsPage() {
                 type="button"
                 disabled={archiving}
                 onClick={handleArchiveConfirm}
-                className="rounded px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-60"
-                style={{ borderRadius: 'var(--nest-radius)' }}
+                className="neu-button px-4 py-2 text-sm font-bold text-red-600 transition-all disabled:opacity-60"
               >
                 {archiving ? 'Archiving…' : 'Archive Location'}
               </button>

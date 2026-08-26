@@ -1,28 +1,35 @@
-import { useState, useEffect, FormEvent, Fragment } from 'react';
-import { UserRole, roleAtLeast, AssetStatus, MATERIAL_STATUS_TRANSITIONS, MaterialDto } from '@nest/shared-types';
+import { useState, useEffect, FormEvent, useRef } from 'react';
+import { UserRole, roleAtLeast, MaterialDto } from '@nest/shared-types';
 import { useAuth } from '../../app/AuthContext';
-import { listMaterials, updateMaterialStatus, requestMaterialQuantity } from '../../api-client/materials';
-import { ApiError } from '../../api-client/client';
+import { listMaterials, createMaterial } from '../../api-client/materials';
+import { listAssetDefinitions, AssetDefinitionDto } from '../../api-client/catalog';
+import { fetchLocations } from '../../api-client/locations';
+import { ApiError, apiRequest } from '../../api-client/client';
 
-// Materials MVP (Implementation Plan checklist items 4/5). See the doc
-// comment on the `Material` model in schema.prisma for why this is a
-// simplified single-table MVP rather than the full Individually Tracked
-// Assets design.
 export function MaterialsPage() {
   const { user } = useAuth();
   const [items, setItems] = useState<MaterialDto[]>([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
+  const [_total, setTotal] = useState(0);
+  const [page, _setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Inline "request quantity" form, one at a time, keyed by material id.
-  const [requestingId, setRequestingId] = useState<string | null>(null);
-  const [requestQty, setRequestQty] = useState('');
-  const [requestReason, setRequestReason] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  // Add material modal state
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [assetDefs, setAssetDefs] = useState<AssetDefinitionDto[]>([]);
+  const [locations, setLocations] = useState<any[]>([]);
+  
+  const [newMaterial, setNewMaterial] = useState({
+    asset_definition_id: '',
+    location_id: '',
+    quantity_on_hand: 0,
+    unit: 'pcs'
+  });
 
-  const canWrite = user && roleAtLeast(user.role as UserRole, UserRole.STUDENT);
+  // CSV
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isAdmin = user && roleAtLeast(user.role as UserRole, UserRole.STORES_MANAGER);
 
   async function fetchData() {
     setLoading(true);
@@ -38,211 +45,182 @@ export function MaterialsPage() {
     }
   }
 
+  async function fetchDropdowns() {
+    try {
+      const defs = await listAssetDefinitions({ page_size: 100 });
+      setAssetDefs(defs.items);
+      const locs = await fetchLocations();
+      setLocations(locs);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   useEffect(() => {
     fetchData();
   }, [page]);
 
-  async function handleStatusChange(material: MaterialDto, newStatus: AssetStatus) {
-    setError(null);
-    try {
-      const updated = await updateMaterialStatus(material.id, { status: newStatus });
-      setItems((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to change status.');
+  useEffect(() => {
+    if (showAddModal) {
+      fetchDropdowns();
     }
-  }
+  }, [showAddModal]);
 
-  async function handleRequestSubmit(e: FormEvent, materialId: string) {
+  async function handleAddSubmit(e: FormEvent) {
     e.preventDefault();
-    setSubmitting(true);
-    setError(null);
     try {
-      await requestMaterialQuantity(materialId, {
-        requested_quantity: Number(requestQty),
-        reason: requestReason || undefined,
+      await createMaterial({
+        asset_definition_id: newMaterial.asset_definition_id,
+        location_id: newMaterial.location_id,
+        quantity_on_hand: newMaterial.quantity_on_hand
       });
-      setRequestingId(null);
-      setRequestQty('');
-      setRequestReason('');
+      setShowAddModal(false);
+      fetchData();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to submit request.');
-    } finally {
-      setSubmitting(false);
+      setError(err instanceof ApiError ? err.message : 'Failed to add material');
     }
   }
 
-  const totalPages = Math.ceil(total / 25);
+  async function handleDownloadCsv() {
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+      const res = await fetch(`${baseUrl}/inventory/csv/template`, {
+        credentials: 'include' // Needed for the HttpOnly session cookie
+      });
+      if (!res.ok) throw new Error('Failed to download template');
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'inventory_template.csv';
+      a.click();
+    } catch (e) {
+      setError('Download failed.');
+    }
+  }
+
+  async function handleCsvUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      await apiRequest('/inventory/csv/upload', {
+        method: 'POST',
+        body: formData
+      });
+      
+      alert('CSV uploaded successfully!');
+      fetchData();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold">Materials</h1>
-        {user && user.role === UserRole.ADMIN && (
-          <button className="px-4 py-2 bg-blue-600 text-white rounded font-medium hover:bg-blue-700">
-            Add Material
-          </button>
-        )}
+    <div className="p-4 max-w-5xl mx-auto">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <h1 className="text-2xl font-semibold text-gray-700">Inventory</h1>
+        <div className="flex gap-3">
+          {isAdmin && (
+            <>
+              <button onClick={handleDownloadCsv} className="neu-button px-4 py-2 text-sm text-blue-600">
+                Download Template
+              </button>
+              <button onClick={() => fileInputRef.current?.click()} className="neu-button px-4 py-2 text-sm text-blue-600">
+                Upload CSV
+              </button>
+              <input type="file" accept=".csv" className="hidden" ref={fileInputRef} onChange={handleCsvUpload} />
+              <button onClick={() => setShowAddModal(true)} className="neu-button px-4 py-2 text-sm font-medium text-green-600">
+                + Add Material
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {error && (
-        <div
-          role="alert"
-          className="mb-4 rounded p-3 text-sm"
-          style={{ background: '#fef2f2', color: 'var(--nest-color-danger)' }}
-        >
+        <div className="neu-inset mb-6 rounded p-4 text-sm text-red-600">
           {error}
         </div>
       )}
 
-      {loading ? (
-        <p className="text-gray-500 text-sm">Loading…</p>
-      ) : items.length === 0 ? (
-        <p className="text-gray-500 text-sm">No materials found.</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr className="border-b text-left">
-                <th className="py-2 px-2">Item</th>
-                <th className="py-2 px-2">Location</th>
-                <th className="py-2 px-2">Status</th>
-                <th className="py-2 px-2">On hand</th>
-                {canWrite && <th className="py-2 px-2"></th>}
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((material) => {
-                const allowedNext = MATERIAL_STATUS_TRANSITIONS[material.status] ?? [];
-                const lowStock =
-                  material.reorder_threshold !== null && material.quantity_on_hand <= material.reorder_threshold;
-                return (
-                  <Fragment key={material.id}>
-                    <tr className="border-b hover:bg-gray-50 align-top">
-                      <td className="py-2 px-2">
-                        <div className="font-medium">{material.asset_definition_name}</div>
-                        <div className="text-xs text-gray-500 font-mono">{material.asset_definition_sku}</div>
-                      </td>
-                      <td className="py-2 px-2">{material.location_name ?? '—'}</td>
-                      <td className="py-2 px-2">
-                        <span
-                          className="inline-block px-2 py-0.5 rounded text-xs font-mono uppercase"
-                          style={{ background: '#eef2ff' }}
-                        >
-                          {material.status}
-                        </span>
-                      </td>
-                      <td className="py-2 px-2">
-                        <span className={lowStock ? 'font-semibold' : ''} style={lowStock ? { color: 'var(--nest-color-danger)' } : undefined}>
-                          {material.quantity_on_hand}
-                        </span>
-                        {material.reorder_threshold !== null && (
-                          <span className="text-xs text-gray-400"> / reorder at {material.reorder_threshold}</span>
-                        )}
-                      </td>
-                      {canWrite && (
-                        <td className="py-2 px-2">
-                          <div className="flex flex-wrap gap-2 items-center">
-                            {allowedNext.length > 0 && (
-                              <select
-                                defaultValue=""
-                                onChange={(e) => {
-                                  if (e.target.value) handleStatusChange(material, e.target.value as AssetStatus);
-                                  e.target.value = '';
-                                }}
-                                className="text-xs rounded border px-2 py-1"
-                              >
-                                <option value="" disabled>
-                                  Change status…
-                                </option>
-                                {allowedNext.map((s) => (
-                                  <option key={s} value={s}>
-                                    {s}
-                                  </option>
-                                ))}
-                              </select>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => setRequestingId(requestingId === material.id ? null : material.id)}
-                              className="text-xs px-2 py-1 rounded border"
-                            >
-                              {requestingId === material.id ? 'Cancel' : 'Request qty'}
-                            </button>
-                          </div>
-                        </td>
-                      )}
-                    </tr>
-                    {requestingId === material.id && (
-                      <tr className="border-b bg-gray-50">
-                        <td colSpan={canWrite ? 5 : 4} className="py-3 px-2">
-                          <form
-                            onSubmit={(e) => handleRequestSubmit(e, material.id)}
-                            className="flex flex-wrap items-end gap-3"
-                          >
-                            <div>
-                              <label className="block text-xs font-medium mb-1">Quantity needed *</label>
-                              <input
-                                type="number"
-                                min={1}
-                                required
-                                value={requestQty}
-                                onChange={(e) => setRequestQty(e.target.value)}
-                                className="w-28 rounded border px-2 py-1 text-sm"
-                              />
-                            </div>
-                            <div className="flex-1 min-w-[200px]">
-                              <label className="block text-xs font-medium mb-1">Reason</label>
-                              <input
-                                value={requestReason}
-                                onChange={(e) => setRequestReason(e.target.value)}
-                                className="w-full rounded border px-2 py-1 text-sm"
-                                placeholder="Optional — helps the reviewer"
-                              />
-                            </div>
-                            <button
-                              type="submit"
-                              disabled={submitting}
-                              className="rounded px-3 py-1.5 text-sm font-medium text-white disabled:opacity-60"
-                              style={{ background: 'var(--nest-color-accent)' }}
-                            >
-                              {submitting ? 'Submitting…' : 'Submit request'}
-                            </button>
-                          </form>
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                );
-              })}
-            </tbody>
-          </table>
+      {showAddModal && (
+        <div className="neu-flat rounded-xl p-6 mb-8">
+          <h2 className="text-xl font-bold mb-6 text-gray-700 border-b border-gray-200/50 pb-4">Add New Material</h2>
+          <form onSubmit={handleAddSubmit} className="flex flex-col gap-6 max-w-md">
+            <div>
+              <label className="block text-sm font-bold mb-2 text-gray-600 pl-1">Asset Definition</label>
+              <select 
+                required
+                value={newMaterial.asset_definition_id}
+                onChange={e => setNewMaterial(prev => ({ ...prev, asset_definition_id: e.target.value }))}
+                className="neu-inset w-full px-4 py-3.5 rounded-xl text-gray-700 outline-none bg-transparent appearance-none font-medium"
+              >
+                <option value="">Select an asset...</option>
+                {assetDefs.map(def => <option key={def.id} value={def.id}>{def.name} ({def.sku})</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-bold mb-2 text-gray-600 pl-1">Location</label>
+              <select 
+                value={newMaterial.location_id}
+                onChange={e => setNewMaterial(prev => ({ ...prev, location_id: e.target.value }))}
+                className="neu-inset w-full px-4 py-3.5 rounded-xl text-gray-700 outline-none bg-transparent appearance-none font-medium"
+              >
+                <option value="">Select location (optional)</option>
+                {locations.map(loc => <option key={loc.id} value={loc.id}>{loc.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-bold mb-2 text-gray-600 pl-1">Quantity On Hand</label>
+              <input 
+                type="number" min="0" required
+                value={newMaterial.quantity_on_hand}
+                onChange={e => setNewMaterial(prev => ({ ...prev, quantity_on_hand: Number(e.target.value) }))}
+                className="neu-inset w-full px-4 py-3.5 rounded-xl text-gray-700 outline-none font-medium"
+              />
+            </div>
+            <div className="flex gap-4 mt-4">
+              <button type="submit" className="neu-button flex-1 rounded-xl py-3 font-bold text-blue-600 transition-all">Save</button>
+              <button type="button" onClick={() => setShowAddModal(false)} className="neu-button flex-1 rounded-xl py-3 font-bold text-gray-600 transition-all">Cancel</button>
+            </div>
+          </form>
         </div>
       )}
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4 text-sm">
-          <span className="text-gray-500">{total} total</span>
-          <div className="flex gap-2">
-            <button
-              disabled={page <= 1}
-              onClick={() => setPage(page - 1)}
-              className="px-3 py-1 rounded border disabled:opacity-40"
-            >
-              Previous
-            </button>
-            <span className="px-2 py-1">
-              Page {page} of {totalPages}
-            </span>
-            <button
-              disabled={page >= totalPages}
-              onClick={() => setPage(page + 1)}
-              className="px-3 py-1 rounded border disabled:opacity-40"
-            >
-              Next
-            </button>
-          </div>
-        </div>
-      )}
+      <div className="flex flex-col gap-4">
+        {loading ? (
+          <p className="text-gray-500 text-sm">Loading…</p>
+        ) : items.length === 0 ? (
+          <p className="text-gray-500 text-sm">No materials found.</p>
+        ) : (
+          items.map(material => (
+            <div key={material.id} className="neu-flat p-4 flex flex-col md:flex-row justify-between md:items-center gap-4">
+              <div>
+                <h3 className="font-semibold text-gray-700">{material.asset_definition_name}</h3>
+                <p className="text-xs text-gray-500 font-mono mb-1">{material.asset_definition_sku}</p>
+                <p className="text-sm text-gray-600">Location: {material.location_name ?? '—'}</p>
+              </div>
+              <div className="flex items-center gap-6">
+                <div className="text-center">
+                  <p className="text-xs text-gray-500 uppercase">Status</p>
+                  <p className="text-sm font-medium text-gray-700">{material.status}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-gray-500 uppercase">Stock</p>
+                  <p className="text-xl font-semibold text-blue-600">{material.quantity_on_hand}</p>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
     </div>
   );
 }

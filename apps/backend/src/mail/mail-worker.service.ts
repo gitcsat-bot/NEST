@@ -44,7 +44,30 @@ import { PrismaService } from '../prisma/prisma.service';
 //      obvious, and still mark the message sent (otherwise every
 //      non-test email would retry forever in a dev environment that was
 //      never going to have SMTP creds).
-const DEFAULT_CONSOLE_TEST_ACCOUNTS = ['admin@nest.local', 'test@nest.local', 'student@nest.local'];
+// Emails whose outgoing mail is always printed to the console instead of
+// (or in addition to) being delivered via SMTP. Includes:
+//   - Legacy dev accounts seeded by seed.ts (admin, viewer, student roles).
+//   - 10 dedicated test-email accounts seeded by seed-test-accounts.ts.
+//     These have MIS IDs 000000000–999999999 (repeating digit) which the
+//     production registration DTO validator rejects, so they can never be
+//     claimed by real users.
+const DEFAULT_CONSOLE_TEST_ACCOUNTS = [
+  'admin@nest.local',
+  'test@nest.local',
+  'student@nest.local',
+  'pending-student@nest.local',
+  // --- Test Email accounts (seed-test-accounts.ts) ---
+  'test-0@nest.local',
+  'test-1@nest.local',
+  'test-2@nest.local',
+  'test-3@nest.local',
+  'test-4@nest.local',
+  'test-5@nest.local',
+  'test-6@nest.local',
+  'test-7@nest.local',
+  'test-8@nest.local',
+  'test-9@nest.local',
+];
 const POLL_MS = Number(process.env.MAIL_WORKER_POLL_MS ?? 2000);
 const BATCH_SIZE = 10;
 const MAX_ATTEMPTS = 3;

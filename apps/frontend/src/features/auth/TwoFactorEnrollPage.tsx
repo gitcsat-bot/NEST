@@ -128,43 +128,44 @@ export function TwoFactorEnrollPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-sm bg-white rounded-md shadow-sm p-8">
+    <main className="min-h-screen flex items-center justify-center p-4">
+      <div className="w-full max-w-sm neu-flat rounded-3xl overflow-hidden p-6 md:p-8">
 
         {/* ── Step 1: QR code ─────────────────────────────────────────── */}
         {step === 'qr' && (
           <>
-            <h1 className="text-xl font-semibold mb-2 text-center">Set up two-factor authentication</h1>
-            <p className="text-sm text-gray-600 mb-4 text-center">
-              Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.).
-            </p>
+            <div className="text-center flex flex-col items-center mb-6">
+              <h1 className="text-2xl font-bold tracking-tight text-gray-700 border-b border-gray-200/50 pb-4 w-full">Set up 2FA</h1>
+              <p className="text-sm font-medium text-gray-500 mt-4">
+                Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.).
+              </p>
+            </div>
 
             {error && (
-              <div role="alert" className="mb-4 rounded p-3 text-sm"
-                style={{ background: '#fef2f2', color: 'var(--nest-color-danger)' }}>
+              <div role="alert" className="mb-6 rounded-xl p-4 text-sm neu-inset text-red-600 font-medium">
                 {error}
               </div>
             )}
 
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center mb-6 neu-inset rounded-2xl p-4">
               {enrolling ? (
-                <div className="w-[200px] h-[200px] bg-gray-100 rounded flex items-center justify-center text-sm text-gray-500">
+                <div className="w-[200px] h-[200px] rounded flex items-center justify-center text-sm text-gray-500 font-medium">
                   Loading…
                 </div>
               ) : (
-                <canvas ref={canvasRef} className="rounded" />
+                <canvas ref={canvasRef} className="rounded-xl" />
               )}
             </div>
 
             {manualKey && (
-              <details className="mb-4 text-sm">
-                <summary className="cursor-pointer text-gray-600 underline">
+              <details className="mb-6 text-sm text-gray-600 font-medium">
+                <summary className="cursor-pointer text-gray-500 font-bold hover:text-blue-600 transition-colors">
                   Can't scan? Enter code manually
                 </summary>
-                <p className="mt-2 text-xs text-gray-500 mb-1">
+                <p className="mt-4 text-xs text-gray-500 mb-2">
                   Enter this key in your authenticator app:
                 </p>
-                <code className="block font-mono bg-gray-50 border rounded px-3 py-2 text-xs tracking-widest break-all select-all">
+                <code className="block font-mono neu-inset rounded-xl px-4 py-3 text-sm tracking-widest break-all select-all text-gray-700">
                   {manualKey}
                 </code>
               </details>
@@ -174,8 +175,7 @@ export function TwoFactorEnrollPage() {
               type="button"
               disabled={enrolling || !provisioningUri}
               onClick={() => setStep('verify')}
-              className="w-full rounded py-2 font-medium text-white disabled:opacity-60"
-              style={{ background: 'var(--nest-color-accent)', borderRadius: 'var(--nest-radius)' }}
+              className="w-full neu-button py-3 font-bold text-blue-600 disabled:opacity-60 rounded-xl"
             >
               I've added this to my app
             </button>
@@ -185,21 +185,22 @@ export function TwoFactorEnrollPage() {
         {/* ── Step 2: Confirm with a code ──────────────────────────────── */}
         {step === 'verify' && (
           <>
-            <h1 className="text-xl font-semibold mb-2 text-center">Confirm your authenticator</h1>
-            <p className="text-sm text-gray-600 mb-6 text-center">
-              Enter the 6-digit code shown in your app to confirm it's working.
-            </p>
+            <div className="text-center flex flex-col items-center mb-6">
+              <h1 className="text-2xl font-bold tracking-tight text-gray-700 border-b border-gray-200/50 pb-4 w-full">Confirm 2FA</h1>
+              <p className="text-sm font-medium text-gray-500 mt-4">
+                Enter the 6-digit code shown in your app to confirm it's working.
+              </p>
+            </div>
 
             {error && (
-              <div role="alert" className="mb-4 rounded p-3 text-sm"
-                style={{ background: '#fef2f2', color: 'var(--nest-color-danger)' }}>
+              <div role="alert" className="mb-6 rounded-xl p-4 text-sm neu-inset text-red-600 font-medium">
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleVerifySubmit} className="space-y-4">
+            <form onSubmit={handleVerifySubmit} className="space-y-6">
               <div>
-                <label htmlFor="confirm-code" className="block text-sm font-medium mb-1">
+                <label htmlFor="confirm-code" className="block text-sm font-bold text-gray-600 mb-2 pl-1">
                   Authentication code
                 </label>
                 <input
@@ -214,22 +215,20 @@ export function TwoFactorEnrollPage() {
                   value={confirmCode}
                   onChange={(e) => setConfirmCode(e.target.value.replace(/\D/g, ''))}
                   placeholder="000000"
-                  className="w-full rounded border px-3 py-2 font-mono text-center tracking-widest text-lg"
-                  style={{ borderRadius: 'var(--nest-radius)' }}
+                  className="w-full neu-inset rounded-xl px-4 py-3.5 font-mono text-center tracking-[0.5em] text-xl font-bold text-gray-700 outline-none"
                 />
               </div>
               <button
                 type="submit"
                 disabled={verifying || confirmCode.length !== 6}
-                className="w-full rounded py-2 font-medium text-white disabled:opacity-60"
-                style={{ background: 'var(--nest-color-accent)', borderRadius: 'var(--nest-radius)' }}
+                className="w-full neu-button py-3 font-bold text-blue-600 disabled:opacity-60 rounded-xl transition-all"
               >
                 {verifying ? 'Confirming…' : 'Confirm'}
               </button>
             </form>
 
-            <div className="mt-4 text-center">
-              <button type="button" onClick={() => setStep('qr')} className="text-sm underline text-gray-500">
+            <div className="mt-6 text-center">
+              <button type="button" onClick={() => setStep('qr')} className="text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors">
                 Back
               </button>
             </div>
@@ -239,22 +238,23 @@ export function TwoFactorEnrollPage() {
         {/* ── Step 3: Recovery codes ───────────────────────────────────── */}
         {step === 'codes' && (
           <>
-            <h1 className="text-xl font-semibold mb-2 text-center">Save your recovery codes</h1>
+            <div className="text-center flex flex-col items-center mb-6">
+              <h1 className="text-2xl font-bold tracking-tight text-gray-700 border-b border-gray-200/50 pb-4 w-full">Recovery Codes</h1>
+            </div>
 
             {/* Prominent, un-dismissable notice — UI/UX Spec §5.3 deliberately
                 uses friction here because recovery codes are shown once only. */}
             <div
               role="alert"
-              className="mb-4 rounded p-3 text-sm font-medium"
-              style={{ background: '#fef3cd', color: '#92400e', border: '1px solid #fde68a' }}
+              className="mb-6 rounded-xl p-4 text-sm font-medium neu-inset border border-yellow-500/30 text-yellow-700"
             >
               Save these somewhere safe. They won't be shown again.
             </div>
 
-            <ul className="mb-4 grid grid-cols-2 gap-2" aria-label="Recovery codes">
+            <ul className="mb-6 grid grid-cols-2 gap-3" aria-label="Recovery codes">
               {recoveryCodes.map((code) => (
                 <li key={code}>
-                  <code className="block font-mono text-xs bg-gray-50 border rounded px-2 py-1 select-all text-center tracking-wider">
+                  <code className="block font-mono text-sm neu-inset rounded-lg px-3 py-2 select-all text-center tracking-[0.2em] font-bold text-gray-700">
                     {code}
                   </code>
                 </li>
@@ -264,29 +264,27 @@ export function TwoFactorEnrollPage() {
             <button
               type="button"
               onClick={downloadCodes}
-              className="w-full mb-4 rounded py-2 font-medium border text-gray-700"
-              style={{ borderRadius: 'var(--nest-radius)' }}
+              className="w-full mb-6 neu-button py-3 font-bold text-gray-600 rounded-xl"
             >
               Download as .txt file
             </button>
 
-            <label className="flex items-start gap-2 text-sm mb-4 cursor-pointer">
+            <label className="flex items-center gap-3 text-sm mb-6 cursor-pointer neu-flat p-4 rounded-xl">
               <input
                 id="ack-checkbox"
                 type="checkbox"
-                className="mt-0.5 shrink-0"
+                className="shrink-0 w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
                 checked={acknowledged}
                 onChange={(e) => setAcknowledged(e.target.checked)}
               />
-              <span>I've saved these codes in a safe place.</span>
+              <span className="font-medium text-gray-700">I've saved these codes in a safe place.</span>
             </label>
 
             <button
               type="button"
               disabled={!acknowledged}
               onClick={() => navigate('/dashboard', { replace: true })}
-              className="w-full rounded py-2 font-medium text-white disabled:opacity-60"
-              style={{ background: 'var(--nest-color-accent)', borderRadius: 'var(--nest-radius)' }}
+              className="w-full neu-button py-3 font-bold text-blue-600 disabled:opacity-60 rounded-xl"
             >
               Done
             </button>

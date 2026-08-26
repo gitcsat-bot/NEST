@@ -46,14 +46,20 @@ export async function apiRequest<T>(
   const isStateChanging = method !== 'GET';
   const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
+  const isFormData = options.body instanceof FormData;
+  const headers: Record<string, string> = {};
+  if (!isFormData) {
+    headers['Content-Type'] = 'application/json';
+  }
+  if (isStateChanging && csrfToken) {
+    headers['X-CSRF-Token'] = csrfToken;
+  }
+
   const response = await fetch(`${baseUrl}${path}`, {
     method,
     credentials: 'include', // sends the HttpOnly session cookie
-    headers: {
-      'Content-Type': 'application/json',
-      ...(isStateChanging && csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
-    },
-    body: options.body ? JSON.stringify(options.body) : undefined,
+    headers,
+    body: isFormData ? (options.body as FormData) : (options.body ? JSON.stringify(options.body) : undefined),
   });
 
   if (response.status === 204) return undefined as T;

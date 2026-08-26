@@ -18,19 +18,11 @@ import { TransfersModule } from './transfers/transfers.module';
 import { AttachmentsModule } from './attachments/attachments.module';
 import { SearchModule } from './search/search.module';
 import { ReservationsModule } from './reservations/reservations.module';
+import { QuotationsModule } from './quotations/quotations.module';
 
-// Module map — mirrors the Repository Structure's backend module list.
-// Each module owns its own persistence and exposes only a service-layer
-// interface to others (ADR-001). Domain modules beyond auth/users/health
-// (locations, assets, inventory, ...) are added starting with Phase 1's
-// Locations workstream (Implementation Plan §4.1) — see the note at the
-// bottom of prisma/schema.prisma for why they aren't scaffolded yet.
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
-    // API Contract §11 — rate-limit tiers. The "general" tier is registered
-    // globally here; the "strict" tier for auth endpoints is applied via a
-    // per-route override in AuthModule (see auth.controller.ts).
     ThrottlerModule.forRoot([
       { name: 'general', ttl: 60_000, limit: 300 },
     ]),
@@ -51,6 +43,7 @@ import { ReservationsModule } from './reservations/reservations.module';
     AttachmentsModule,
     SearchModule,
     ReservationsModule,
+    QuotationsModule,
   ],
 })
 export class AppModule {}

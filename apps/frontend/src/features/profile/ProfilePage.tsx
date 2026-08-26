@@ -22,6 +22,7 @@ const ROLE_LABELS: Record<string, string> = {
 
 function parseMisId(misId: string | undefined | null) {
   if (!misId || !/^\d{9}$/.test(misId)) return null;
+
   const degreeCode = misId.substring(0, 2);
   if (degreeCode !== '61' && degreeCode !== '71') return null;
   const yearCode = misId.substring(2, 4);
@@ -96,62 +97,78 @@ export function ProfilePage() {
       } else {
         const updateData: any = {};
         if (activeModal === 'Display Name') updateData.displayName = formInput;
-        else if (activeModal === 'MIS ID') updateData.misId = formInput;
+        else if (activeModal === 'MIS ID') {
+          if (!parseMisId(formInput)) throw new Error('Please enter correct MIS ID');
+          updateData.misId = formInput;
+        }
         else if (activeModal === 'Gender') updateData.gender = formInput;
+        
         const updated = await updateProfile(updateData);
         setProfile(updated);
       }
       setActiveModal(null);
     } catch (err: any) {
-      setModalError(err.message || 'Failed to update.');
+      setModalError(err.message || 'Update failed');
     } finally {
       setSubmitting(false);
     }
   };
 
+  const handleAccountDelete = async () => {
+    if (confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+      try {
+        await apiRequest('/users/me', { method: 'DELETE' });
+        window.location.href = '/login';
+      } catch (err: any) {
+        alert(err.message || "Failed to delete account");
+      }
+    }
+  };
+
+
   return (
-    <div className="p-8 max-w-4xl mx-auto">
+    <div className="p-4 md:p-8 max-w-4xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
+        <h1 className="text-2xl font-bold text-gray-700">My Profile</h1>
         <p className="text-gray-500 text-sm mt-1">Manage your personal information and account settings.</p>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="neu-flat overflow-hidden mb-8">
         {/* Header / Avatar Area */}
-        <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-blue-50/50 to-transparent">
+        <div className="p-6 md:p-8 border-b border-gray-200/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="flex items-center gap-6">
             <div className="relative group cursor-pointer" onClick={() => handleEdit('Profile Picture')}>
-              <div className="w-24 h-24 rounded-full bg-blue-600 text-white flex items-center justify-center text-3xl font-bold shadow-md group-hover:opacity-90 transition-opacity">
+              <div className="w-24 h-24 rounded-full neu-flat flex items-center justify-center text-3xl font-bold text-blue-600 transition-opacity">
                 {profile.display_name.charAt(0).toUpperCase()}
               </div>
-              <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <Camera className="text-white" size={24} />
+              <div className="absolute inset-0 rounded-full bg-black/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-inner">
+                <Camera className="text-gray-700" size={24} />
               </div>
             </div>
             
             <div>
               <div className="flex items-center gap-3">
-                <h2 className="text-2xl font-bold text-gray-900">{profile.display_name}</h2>
-                <button onClick={() => handleEdit('Display Name')} className="text-gray-400 hover:text-blue-600 transition-colors p-1" title="Edit Name">
+                <h2 className="text-2xl font-bold text-gray-700">{profile.display_name}</h2>
+                <button onClick={() => handleEdit('Display Name')} className="text-gray-400 hover:text-blue-600 transition-colors p-1 neu-button rounded" title="Edit Name">
                   <Pencil size={16} />
                 </button>
               </div>
               <p className="text-gray-500 mt-0.5">{profile.email}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 uppercase tracking-wider">
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold neu-inset text-blue-800 uppercase tracking-wider">
                   {ROLE_LABELS[profile.role] ?? profile.role}
                 </span>
                 {profile.pending_role && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 uppercase tracking-wider">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 shadow-inner uppercase tracking-wider">
                     Pending: {ROLE_LABELS[profile.pending_role] ?? profile.pending_role}
                   </span>
                 )}
                 {profile.is_active ? (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 uppercase tracking-wider">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 shadow-inner uppercase tracking-wider">
                     Active
                   </span>
                 ) : (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 uppercase tracking-wider">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 shadow-inner uppercase tracking-wider">
                     Deactivated
                   </span>
                 )}
@@ -159,10 +176,10 @@ export function ProfilePage() {
             </div>
           </div>
           
-          <div>
+          <div className="mt-4 md:mt-0">
             <button 
               onClick={() => handleEdit('Password')}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-all shadow-sm"
+              className="flex items-center gap-2 px-4 py-2 neu-button rounded-xl text-sm font-medium text-gray-700 hover:text-blue-600 transition-all"
             >
               <Lock size={16} /> Change Password
             </button>
@@ -170,52 +187,52 @@ export function ProfilePage() {
         </div>
 
         {/* Details Grid */}
-        <div className="p-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">Personal Details</h3>
+        <div className="p-6 md:p-8">
+          <h3 className="text-lg font-semibold text-gray-700 mb-6">Personal Details</h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
             
             <div className="group">
-              <div className="flex justify-between items-center mb-1">
+              <div className="flex justify-between items-center mb-2">
                 <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Email Address</span>
               </div>
-              <div className="text-gray-900 font-medium">{profile.email}</div>
+              <div className="text-gray-700 font-medium p-3 neu-inset rounded-lg">{profile.email}</div>
             </div>
 
             <div className="group">
-              <div className="flex justify-between items-center mb-1">
+              <div className="flex justify-between items-center mb-2">
                 <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">MIS ID</span>
-                <button onClick={() => handleEdit('MIS ID')} className="text-gray-400 hover:text-blue-600 transition-colors opacity-0 group-hover:opacity-100">
+                <button onClick={() => handleEdit('MIS ID')} className="text-gray-400 hover:text-blue-600 transition-colors opacity-0 group-hover:opacity-100 neu-button p-1 rounded">
                   <Pencil size={14} />
                 </button>
               </div>
-              <div className="text-gray-900 font-medium">
+              <div className="text-gray-700 font-medium p-3 neu-inset rounded-lg">
                 {profile.mis_id || <span className="text-gray-400 italic font-normal">Not provided</span>}
               </div>
               {profile.mis_id && parseMisId(profile.mis_id) && (
-                <div className="text-sm text-gray-500 mt-0.5">
+                <div className="text-sm text-gray-500 mt-2 px-1">
                   {parseMisId(profile.mis_id)}
                 </div>
               )}
             </div>
 
             <div className="group">
-              <div className="flex justify-between items-center mb-1">
+              <div className="flex justify-between items-center mb-2">
                 <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Gender</span>
-                <button onClick={() => handleEdit('Gender')} className="text-gray-400 hover:text-blue-600 transition-colors opacity-0 group-hover:opacity-100">
+                <button onClick={() => handleEdit('Gender')} className="text-gray-400 hover:text-blue-600 transition-colors opacity-0 group-hover:opacity-100 neu-button p-1 rounded">
                   <Pencil size={14} />
                 </button>
               </div>
-              <div className="text-gray-900 font-medium">
+              <div className="text-gray-700 font-medium p-3 neu-inset rounded-lg">
                 {profile.gender ? (GENDER_LABELS[profile.gender] ?? profile.gender) : <span className="text-gray-400 italic font-normal">Not provided</span>}
               </div>
             </div>
 
             <div>
-              <div className="flex justify-between items-center mb-1">
+              <div className="flex justify-between items-center mb-2">
                 <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Member Since</span>
               </div>
-              <div className="text-gray-900 font-medium">
+              <div className="text-gray-700 font-medium p-3 neu-inset rounded-lg">
                 {new Date(profile.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
               </div>
             </div>
@@ -224,19 +241,35 @@ export function ProfilePage() {
         </div>
       </div>
 
+      <div className="neu-flat p-6 md:p-8">
+        <h2 className="text-lg font-semibold text-red-500 mb-4 flex items-center gap-2">Danger Zone</h2>
+        <div className="neu-inset rounded-xl p-5 border border-red-200/50">
+          <h3 className="text-sm font-semibold text-red-700 mb-1">Delete Account</h3>
+          <p className="text-sm text-red-500/80 mb-5">
+            Once you delete your account, there is no going back. Please be certain.
+          </p>
+          <button
+            onClick={handleAccountDelete}
+            className="px-5 py-2.5 bg-red-500 text-white shadow-[inset_2px_2px_4px_rgba(255,255,255,0.3),_inset_-2px_-2px_4px_rgba(0,0,0,0.2)] rounded-lg text-sm font-medium hover:bg-red-600 transition-colors"
+          >
+            Delete my account
+          </button>
+        </div>
+      </div>
+
       {activeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md bg-white rounded-md p-6 shadow-xl space-y-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Change {activeModal}</h3>
-              <button onClick={() => setActiveModal(null)} className="text-gray-400 hover:text-gray-600">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md neu-flat rounded-2xl p-6 md:p-8 space-y-5">
+            <div className="flex justify-between items-center mb-4 border-b border-gray-200/50 pb-4">
+              <h3 className="text-lg font-semibold text-gray-700">Change {activeModal}</h3>
+              <button onClick={() => setActiveModal(null)} className="text-gray-400 hover:text-gray-700 neu-button p-2 rounded-lg">
                 <X size={20} />
               </button>
             </div>
             
-            <form onSubmit={submitEdit} className="space-y-4">
+            <form onSubmit={submitEdit} className="space-y-5">
               {modalError && (
-                <div className="p-3 text-sm rounded bg-red-50 text-red-800">
+                <div className="p-3 text-sm rounded-lg neu-inset text-red-600 font-medium">
                   {modalError}
                 </div>
               )}
@@ -244,33 +277,33 @@ export function ProfilePage() {
               {activeModal === 'Password' ? (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Current Password</label>
                     <input 
                       type="password" 
                       required 
                       value={formInput} 
                       onChange={e => setFormInput(e.target.value)} 
-                      className="w-full border rounded px-3 py-2 text-sm" 
+                      className="w-full neu-inset rounded-lg px-4 py-3 text-sm outline-none text-gray-700" 
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">New Password</label>
                     <input 
                       type="password" 
                       required 
                       value={formInput2} 
                       onChange={e => setFormInput2(e.target.value)} 
-                      className="w-full border rounded px-3 py-2 text-sm" 
+                      className="w-full neu-inset rounded-lg px-4 py-3 text-sm outline-none text-gray-700" 
                     />
                   </div>
                 </>
               ) : activeModal === 'Gender' ? (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">Gender</label>
                   <select 
                     value={formInput} 
                     onChange={e => setFormInput(e.target.value)}
-                    className="w-full border rounded px-3 py-2 text-sm"
+                    className="w-full neu-inset rounded-lg px-4 py-3 text-sm outline-none text-gray-700 bg-transparent"
                   >
                     <option value="">Select Gender</option>
                     {Object.entries(GENDER_LABELS).map(([k, v]) => (
@@ -278,23 +311,54 @@ export function ProfilePage() {
                     ))}
                   </select>
                 </div>
+              ) : activeModal === 'MIS ID' ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">MIS ID</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="\d{9}"
+                    maxLength={9}
+                    value={formInput}
+                    onChange={(e) => setFormInput(e.target.value.replace(/\D/g, '').slice(0, 9))}
+                    className="w-full neu-inset rounded-lg px-4 py-3 font-mono tracking-widest text-sm outline-none text-gray-700"
+                    placeholder="123456789"
+                  />
+                  <div className="mt-2 ml-1">
+                    {parseMisId(formInput) ? (
+                      <p className="text-xs text-emerald-600 font-bold">{parseMisId(formInput)}</p>
+                    ) : (
+                      <p className="text-xs text-gray-500 font-medium">Exactly 9 digits, as printed on your college ID.</p>
+                    )}
+                  </div>
+                </div>
               ) : (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{activeModal}</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">{activeModal}</label>
                   <input 
                     type="text" 
-                    required={activeModal !== 'MIS ID'} 
+                    required 
                     value={formInput} 
                     onChange={e => setFormInput(e.target.value)} 
-                    className="w-full border rounded px-3 py-2 text-sm" 
+                    className="w-full neu-inset rounded-lg px-4 py-3 text-sm outline-none text-gray-700" 
                   />
                 </div>
               )}
 
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => setActiveModal(null)} className="px-4 py-2 border rounded text-sm text-gray-700 hover:bg-gray-50">Cancel</button>
-                <button type="submit" disabled={submitting} className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:opacity-50">
-                  {submitting ? 'Saving...' : 'Save'}
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200/50">
+                <button 
+                  type="button" 
+                  onClick={() => setActiveModal(null)} 
+                  className="px-5 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 neu-button rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={submitting}
+                  className="px-5 py-2.5 text-sm font-medium text-blue-600 disabled:opacity-50 neu-button rounded-xl"
+                >
+                  {submitting ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </form>
